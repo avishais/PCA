@@ -52,7 +52,7 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
         }
         case PLANNER_RRT:
         {
-            return std::make_shared<og::RRT>(si, maxStep, env);
+            return std::make_shared<og::RRT>(si, maxStep, env, knn_);
             break;
         }
         // case PLANNER_LAZYRRT:
@@ -79,7 +79,7 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
     }
 }
 
-void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype, double max_step) {
+void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype, double max_step, int knn) {
 
 	// construct the state space we are planning inz
 	ob::StateSpacePtr Q(new ob::RealVectorStateSpace(12)); // Angles of Robot 1 & 2 - R^12
@@ -145,6 +145,7 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 	pdef->print();
 
 	maxStep = max_step;
+	knn_ = knn;
 	// create a planner for the defined space
 	// To add a planner, the #include library must be added above
 	ob::PlannerPtr planner = allocatePlanner(si, ptype);
@@ -273,24 +274,26 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 3;
+	int mode = 4;
 	switch (mode) {
 	case 1: {
 		Plan.plan(c_start, c_goal, runtime, ptype, 2.6);
 
 		break;
 	}
-	case 2 : { // Benchmark planning time with constant maximum step size
+	case 2 : { // Benchmark method with constant d = 2.8
 		ofstream GD;
-		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/profile/profile_" + plannerName + "_GD_env2.txt", ios::app);
+		if (env == 1)
+			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_5.txt", ios::app);
+		else if (env == 2)
+			GD.open("./matlab/Benchmark_" + plannerName + "_envII_w.txt", ios::app);
 
-		for (int k = 0; k < 100; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, 1); // CBiRRT
-			Plan.plan(c_start, c_goal, runtime, ptype, 0.6); // SBL
+		for (int k = 0; k < 500; k++) {
+			Plan.plan(c_start, c_goal, runtime, ptype, 2.8); 
 
 			// Extract from perf file
 			ifstream FromFile;
-			FromFile.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/paths/perf_log.txt");
+			FromFile.open("./paths/perf_log.txt");
 			string line;
 			while (getline(FromFile, line))
 				GD << line << "\t";
@@ -303,7 +306,7 @@ int main(int argn, char ** args) {
 	case 3 : { // Benchmark maximum step size
 		ofstream GD;
 		if (env == 1)
-			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_rB.txt", ios::app);
+			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_rB_2.txt", ios::app);
 		else if (env == 2)
 			GD.open("./matlab/Benchmark_" + plannerName + "_envII_w_rB.txt", ios::app);
 
@@ -317,6 +320,38 @@ int main(int argn, char ** args) {
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 
 				GD << maxStep << "\t";
+
+				// Extract from perf file
+				ifstream FromFile;
+				FromFile.open("./paths/perf_log.txt");
+				string line;
+				while (getline(FromFile, line))
+					GD << line << "\t";
+				FromFile.close();
+				GD << endl;
+			}
+		}
+		GD.close();
+		break;
+	}
+	case 4 : { // Benchmark min tree size
+		ofstream GD;
+		if (env == 1)
+			GD.open("./matlab/Benchmark_" + plannerName + "_envI_minTree.txt", ios::app);
+		else if (env == 2)
+			GD.open("./matlab/Benchmark_" + plannerName + "_envII_knn.txt", ios::app);
+
+		for (int k = 0; k < 100; k++) {
+
+			for (int j = 0; j < 10; j++) {
+				int knn = 1 + 1 * j;
+				double maxStep = 2.8;
+
+				cout << "** Running GD iteration " << k << " with knn = " << knn << " **" << endl;
+
+				Plan.plan(c_start, c_goal, runtime, ptype, maxStep, knn);
+
+				GD << knn << "\t";
 
 				// Extract from perf file
 				ifstream FromFile;

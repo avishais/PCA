@@ -41,7 +41,7 @@
 
 #include "RRT.h"
 
-ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, double maxStep, int env) : base::Planner(si, "RRT"), StateValidityChecker(si, env)
+ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, double maxStep, int env, int knn) : base::Planner(si, "RRT"), StateValidityChecker(si, env)
 {
     specs_.approximateSolutions = true;
     specs_.directed = true;
@@ -56,6 +56,7 @@ ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, double maxStep, i
     Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias, "0.:.05:1.");
 
     Range = maxStep;
+    knn_ = knn;
 }
 
 ompl::geometric::RRT::~RRT()
@@ -143,7 +144,6 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
     goal_s->sampleGoal(rstate);
     PlanDistance = si_->distance(start_node, rstate);
     std::vector<Motion*> nhbr;
-    int knn = 20;
 
     while (ptc == false)
     {
@@ -160,9 +160,15 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
         /* find closest state in the tree */
         Motion *nmotion = nn_->nearest(rmotion);
         
-        if (!gg && nn_->size() > 6) {
+        if (usePCA && !gg && nn_->size() > knn_) {
             // Find up to knn nearest neighbors to nmotion in the tree
-            nn_->nearestK(nmotion, min(knn, nn_->size()), nhbr);
+            //nn_->nearestK(nmotion, min(20, nn_->size()), nhbr);
+            nn_->nearestR(nmotion, 1, nhbr);
+
+            /*for (int i = 0; i < nhbr.size(); i++) {
+                cout << si_->distance(nhbr[i]->state, nmotion->state) << " ";
+            }
+            cout << endl;*/
 
             // Create vector<vector> db for neighbors
             Matrix NHBR;
@@ -170,6 +176,9 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
                 retrieveStateVector(nhbr[i]->state, q);
                 NHBR.push_back(q);
             }
+            retrieveStateVector(nmotion->state, q);
+            NHBR.push_back(q);
+
             // Find new sample using pca
             q = sample_pca(NHBR);
             updateStateVector(rstate, q);

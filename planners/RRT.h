@@ -69,7 +69,7 @@ class RRT : public base::Planner, StateValidityChecker
 public:
 
 	/** \brief Constructor */
-	RRT(const base::SpaceInformationPtr &si, double = 2, int = 1);
+	RRT(const base::SpaceInformationPtr &si, double = 2, int = 1, int = 20);
 
 	virtual ~RRT();
 
@@ -128,6 +128,12 @@ public:
 
 	// Maximum local connection distance
 	double Range;
+
+	// k number of nearest neighbors to use for PCA
+	int knn_;
+
+	// Flag to whether use PCA
+	bool usePCA = true;
 
 protected:
 

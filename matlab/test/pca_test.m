@@ -31,7 +31,7 @@ mpr = mean(pr);
 ps2d = rand(1,2) * 2 - 1;
 % ps2d = ps2d * 5;
 
-ps = coeff(:,1:2) * ps2d';% + mpr';
+ps = coeff(:,1:2) * ps2d' + mpr';
 
 [norm(ps2d) norm(ps)]
 
