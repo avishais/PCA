@@ -4,7 +4,10 @@
 % Benchmark_RRT_envI_w_3.txt - with PCA (including the nearest neighbor in the PCA) knn=tree size
 % Benchmark_RRT_envI_w_4.txt - with PCA (including the nearest neighbor in the PCA) knn=90
 % Benchmark_RRT_envI_w_5.txt- with the minimum number of nodes in tree to operate PCA set to 1 (previously was 6)
+% *Benchmark_RRT_envI_w_6.txt- with the minimum number of nodes in tree to operate PCA set to 3 (previously was 6)
+% Benchmark_RRT_envI_w_7.txt- nearestR with radius 2.6
 
+% (*) marks best so far
 % In all trials, d = 2.8
 % last updated: 12/11/17
 
@@ -17,9 +20,14 @@ planners = {'BiRRT','RRT'};
 plannerType = planners{2};
 switch plannerType
     case 'BiRRT'
-
+        D{1} = load('Benchmark_CBiRRT_envI_w_8.txt'); 
+        D{2} = load('Benchmark_CBiRRT_envI_wo.txt');
+        D{1} = [d*ones(size(D{1},1),1) D{1}];
+        D{2} = [d*ones(size(D{2},1),1) D{2}];
+        D{1} = D{1}(D{1}(:,2)==1,:); 
+        D{2} = D{2}(D{2}(:,2)==1,:); 
     case 'RRT'
-        D{1} = load('Benchmark_RRT_envI_w.txt'); 
+        D{1} = load('Benchmark_RRT_envI_w_8.txt'); 
         D{2} = load('Benchmark_RRT_envI_wo.txt'); 
         fprintf('Failures: \t%.1f, %.1f \n', 100-sum(D{1}(:,1))/size(D{1},1)*100, 100-sum(D{2}(:,1))/size(D{2},1)*100);
         D{1} = [d*ones(size(D{1},1),1) D{1}];

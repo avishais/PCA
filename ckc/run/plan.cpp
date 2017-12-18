@@ -47,7 +47,7 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
     {
         case PLANNER_BIRRT:
         {
-            return std::make_shared<og::CBiRRT>(si, maxStep, env);
+            return std::make_shared<og::CBiRRT>(si, maxStep, env, knn_);
             break;
         }
         case PLANNER_RRT:
@@ -217,11 +217,13 @@ int main(int argn, char ** args) {
 	if (argn == 1) {
 		runtime = 1; // sec
 		ptype = PLANNER_BIRRT;
+		plannerName = "CBiRRT";
 		env = 1;
 	}
 	else if (argn == 2) {
 		runtime = atof(args[1]);
 		ptype = PLANNER_BIRRT;
+		plannerName = "CBiRRT";
 		env = 1;
 	}
 	else if (argn > 2) {
@@ -229,7 +231,7 @@ int main(int argn, char ** args) {
 		switch (atoi(args[2])) {
 		case 1 :
 			ptype = PLANNER_BIRRT;
-			plannerName = "BiRRT";
+			plannerName = "CBiRRT";
 			break;
 		case 2 :
 			ptype = PLANNER_RRT;
@@ -274,22 +276,27 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 4;
+	int mode = 2;
 	switch (mode) {
 	case 1: {
-		Plan.plan(c_start, c_goal, runtime, ptype, 2.6);
+		Plan.plan(c_start, c_goal, runtime, ptype, 2.8, 12);
 
 		break;
 	}
-	case 2 : { // Benchmark method with constant d = 2.8
+	case 2 : { // Benchmark method with constant d = 2.8 (env I) or d = 0.8 (env II))
 		ofstream GD;
-		if (env == 1)
-			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_5.txt", ios::app);
-		else if (env == 2)
+		double d;
+		if (env == 1) {
+			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_8.txt", ios::app);
+			d = 2.8;
+		}
+		else if (env == 2) {
 			GD.open("./matlab/Benchmark_" + plannerName + "_envII_w.txt", ios::app);
+			d = 0.8;
+		}
 
 		for (int k = 0; k < 500; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, 2.8); 
+			Plan.plan(c_start, c_goal, runtime, ptype, d, 12); 
 
 			// Extract from perf file
 			ifstream FromFile;
@@ -306,14 +313,14 @@ int main(int argn, char ** args) {
 	case 3 : { // Benchmark maximum step size
 		ofstream GD;
 		if (env == 1)
-			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_rB_2.txt", ios::app);
+			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_rB.txt", ios::app);
 		else if (env == 2)
 			GD.open("./matlab/Benchmark_" + plannerName + "_envII_w_rB.txt", ios::app);
 
 		for (int k = 0; k < 50; k++) {
 
 			for (int j = 0; j < 15; j++) {
-				double maxStep = 1 + 0.2*j;
+				double maxStep = 0.4 + 0.2*j;
 
 				cout << "** Running GD iteration " << k << " with maximum step: " << maxStep << " **" << endl;
 
@@ -337,14 +344,14 @@ int main(int argn, char ** args) {
 	case 4 : { // Benchmark min tree size
 		ofstream GD;
 		if (env == 1)
-			GD.open("./matlab/Benchmark_" + plannerName + "_envI_minTree.txt", ios::app);
+			GD.open("./matlab/Benchmark_" + plannerName + "_envI_dimpca.txt", ios::app);
 		else if (env == 2)
 			GD.open("./matlab/Benchmark_" + plannerName + "_envII_knn.txt", ios::app);
 
-		for (int k = 0; k < 100; k++) {
+		for (int k = 0; k < 2000; k++) {
 
-			for (int j = 0; j < 10; j++) {
-				int knn = 1 + 1 * j;
+			for (int j = 4; j < 13; j++) {
+				int knn = 0 + 1 * j;
 				double maxStep = 2.8;
 
 				cout << "** Running GD iteration " << k << " with knn = " << knn << " **" << endl;

@@ -46,7 +46,7 @@ void o(T a) {
 	cout << a << endl;
 }
 
-ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxStep, int env) : base::Planner(si, "CBiRRT"), StateValidityChecker(si, env)
+ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxStep, int env, int knn) : base::Planner(si, "CBiRRT"), StateValidityChecker(si, env)
 {
 	specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 	specs_.directed = true;
@@ -59,6 +59,7 @@ ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxS
 	defaultSettings();
 
 	Range = maxStep; // Maximum local connection distance
+	knn_ = knn;
 }
 
 ompl::geometric::CBiRRT::~CBiRRT()
@@ -339,6 +340,10 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 
 		// Grow tree
 		Motion *nmotion = tree->nearest(tmotion); // NN over the active distance
+
+		if (usePCA && tree->size() > 3)
+			samplePCA(tree, nmotion, rstate);
+
 		reached_motion = growTree(tree, tgi, nmotion, tmotion, rmotion, 1, 100);
 
 		// remember which motion was just added
@@ -471,6 +476,29 @@ void ompl::geometric::CBiRRT::getPlannerData(base::PlannerData &data) const
 	// Add the edge connecting the two trees
 	data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }
+
+void ompl::geometric::CBiRRT::samplePCA(TreeData &tree, Motion *nmotion, base::State *rstate) {
+
+    std::vector<Motion*> nhbr;
+    State q(get_n());
+
+    // Find up to knn nearest neighbors to nmotion in the tree
+    tree->nearestK(nmotion, min(knn_, tree->size()), nhbr); //
+    //nn_->nearestR(nmotion, nn_radius_, nhbr);
+
+    // Create vector<vector> db for neighbors
+    Matrix NHBR;
+    for (int i = 0; i < nhbr.size(); i++) {
+        retrieveStateVector(nhbr[i]->state, q);
+        NHBR.push_back(q);
+    }
+    retrieveStateVector(nmotion->state, q);
+    NHBR.push_back(q);
+
+    // Find new sample using pca
+    q = sample_pca(NHBR);
+    updateStateVector(rstate, q);
+}   
 
 bool ompl::geometric::CBiRRT::check_path(vector<Motion*> mpath1, vector<Motion*> mpath2) {
 

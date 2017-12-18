@@ -132,8 +132,10 @@ public:
 	// k number of nearest neighbors to use for PCA
 	int knn_;
 
+	double nn_radius_;
+
 	// Flag to whether use PCA
-	bool usePCA = true;
+	bool usePCA = false;
 
 protected:
 
@@ -197,6 +199,10 @@ protected:
     // ***************** My additional functions ************************
     /** \brief Save solution path to two files */
 	void save2file(vector<Motion*>);
+
+	/** \brief Sample in PCA lower space */
+	void samplePCA(Motion *, base::State *);
+		
 };
 
 }

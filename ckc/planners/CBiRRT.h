@@ -68,7 +68,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            CBiRRT(const base::SpaceInformationPtr &si, double = 2, int = 1);
+            CBiRRT(const base::SpaceInformationPtr &si, double = 2, int = 1, int = 20);
 
             virtual ~CBiRRT();
 
@@ -111,6 +111,14 @@ namespace ompl
 
             // Flag of successful reach to point in the growTree function
             bool growTree_reached;
+
+            	// k number of nearest neighbors to use for PCA
+	        int knn_;
+    
+            double nn_radius_;
+    
+            // Flag to whether use PCA
+            bool usePCA = true;
 
         protected:
 
@@ -212,6 +220,9 @@ namespace ompl
 
             // Smooth the solution path
             void smoothPath(vector<Motion*> &path);
+
+            /** \brief Sample in PCA lower space */
+	        void samplePCA(TreeData &, Motion *, base::State *);
 
         };
 

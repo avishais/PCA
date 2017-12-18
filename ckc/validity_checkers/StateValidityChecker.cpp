@@ -372,35 +372,59 @@ bool StateValidityChecker::reconstructSew(State q1, State q2, Matrix &M) {
 
 // ------------------------------------ PCA functions ----------------------------------------------------
 
-State StateValidityChecker::sample_pca(Matrix nhbr) {
-
-	int dim_pca = 6;
+State StateValidityChecker::sample_pca(Matrix nhbr, int dim_pca) {
 
 	int num_records = nhbr.size();	
 	set_num_records(num_records);
 
-	for (int i = 0; i < num_records; i++) 
+	// cout << "dim_pca: " << dim_pca << endl;
+
+	// cout << "nhbr: \n";
+	// printMatrix(nhbr);
+
+	// ofstream F;
+	// F.open("records.txt");
+
+	for (int i = 0; i < num_records; i++) {
 		add_record(nhbr[i]);
+		// for (int j = 0; j < nhbr[i].size(); j++)
+		// 	F << nhbr[i][j] << " ";
+		// F << endl;
+	}
+	// F.close();
 		
+	//print_records();
+
 	solve();
+
+	dim_pca = get_dim_pca();
 	
 	State q_pca(dim_pca);
 	for (int i = 0; i < dim_pca; i++)
 		q_pca[i] = -PI + (double)rand()/RAND_MAX * 2*PI;
+	// q_pca[0] = 1;
+
+	// cout << "q_pca: ";
+	// printVector(q_pca);
 
 	State q = reconstruct_pca(q_pca);
+
+	// cout << "q: ";
+	// printVector(q);
+	// cin.ignore();
 	return q;
-		
 }
 
 State StateValidityChecker::reconstruct_pca(State q) {
-	arma::Mat<double> E(12, q.size());
+	arma::Mat<double> E(n, q.size());
 	arma::Col<double> qp(q.size());
-	arma::Col<double> qm(12);
-	State eigv(12), qs(12), q_mean(12);
+	arma::Col<double> qm(n);
+	State eigv(n), qs(n), q_mean(n);
 
+	// cout << "eigv: \n";
 	for (int i = 0; i < q.size(); i++) {
 		eigv = get_eigenvector(i);
+		// printVector(eigv);
 		q_mean = get_mean_values();
 		for (int j = 0; j < eigv.size(); j++) {
 			E(j,i) = eigv[j];
@@ -409,15 +433,52 @@ State StateValidityChecker::reconstruct_pca(State q) {
 		qp(i) = q[i];
 	}
 
-	arma::Col<double> qr(12);
+	// cout << "E: \n";
+	// for (int i = 0; i < eigv.size(); i++) {
+	// 	for (int j = 0; j < q.size(); j++) 
+	// 		cout << E(i,j) << " ";
+	// 	cout << endl;
+	// }
+
+	// cout << "q_mean: ";
+	// printVector(q_mean);
+
+	arma::Col<double> qr(n);
 	qr = E * qp + qm;
 
 	for (int j = 0; j < qr.size(); j++)
 		qs[j] = qr(j);
 
-	return qs;
+	// cout << "qs: ";
+	// printVector(qs);
 
+	return qs;
 }
+
+int StateValidityChecker::get_dim_pca() {
+
+	State evl = get_eigenvalues();
+	double sum_evl = 0;
+	for (int i = 0; i < evl.size(); i++)
+		sum_evl += evl[i];
+	for (int i = 0; i < evl.size(); i++)
+		evl[i] /= sum_evl;
+	// cout << "evl: "; printVector(evl);
+
+	int i = 0;
+	sum_evl = 0;
+	while (i < 12) {
+		sum_evl += evl[i];
+		if (sum_evl > 0.99)
+			break;
+		i++;
+	}
+
+	// cout << i << endl;
+
+	return i;
+}
+	
 
 // ------------------------------------ MISC functions ---------------------------------------------------
 

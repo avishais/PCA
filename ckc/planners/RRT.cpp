@@ -57,6 +57,7 @@ ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, double maxStep, i
 
     Range = maxStep;
     knn_ = knn;
+    //nn_radius_ = nn_radius;
 }
 
 ompl::geometric::RRT::~RRT()
@@ -159,31 +160,10 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 
         /* find closest state in the tree */
         Motion *nmotion = nn_->nearest(rmotion);
-        
-        if (usePCA && !gg && nn_->size() > knn_) {
-            // Find up to knn nearest neighbors to nmotion in the tree
-            //nn_->nearestK(nmotion, min(20, nn_->size()), nhbr);
-            nn_->nearestR(nmotion, 1, nhbr);
 
-            /*for (int i = 0; i < nhbr.size(); i++) {
-                cout << si_->distance(nhbr[i]->state, nmotion->state) << " ";
-            }
-            cout << endl;*/
+        if (usePCA && !gg && nn_->size() > 3) 
+            samplePCA(nmotion, rstate);        
 
-            // Create vector<vector> db for neighbors
-            Matrix NHBR;
-            for (int i = 0; i < nhbr.size(); i++) {
-                retrieveStateVector(nhbr[i]->state, q);
-                NHBR.push_back(q);
-            }
-            retrieveStateVector(nmotion->state, q);
-            NHBR.push_back(q);
-
-            // Find new sample using pca
-            q = sample_pca(NHBR);
-            updateStateVector(rstate, q);
-        }
-        
         base::State *dstate = rstate;
 
         //cout << "Nearest neighbors to: "; printStateVector(rmotion->state);
@@ -330,6 +310,29 @@ void ompl::geometric::RRT::getPlannerData(base::PlannerData &data) const
                          base::PlannerDataVertex(motions[i]->state));
     }
 }
+
+void ompl::geometric::RRT::samplePCA(Motion *nmotion, base::State *rstate) {
+
+    std::vector<Motion*> nhbr;
+    State q(get_n());
+
+    // Find up to knn nearest neighbors to nmotion in the tree
+    nn_->nearestK(nmotion, min(80, nn_->size()), nhbr); //
+    //nn_->nearestR(nmotion, nn_radius_, nhbr);
+
+    // Create vector<vector> db for neighbors
+    Matrix NHBR;
+    for (int i = 0; i < nhbr.size(); i++) {
+        retrieveStateVector(nhbr[i]->state, q);
+        NHBR.push_back(q);
+    }
+    retrieveStateVector(nmotion->state, q);
+    NHBR.push_back(q);
+
+    // Find new sample using pca
+    q = sample_pca(NHBR, knn_);
+    updateStateVector(rstate, q);
+}    
 
 void ompl::geometric::RRT::save2file(vector<Motion*> mpath) {
 

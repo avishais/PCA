@@ -11,10 +11,14 @@ planners = {'BiRRT','RRT'};
 plannerType = planners{2};
 switch plannerType
     case 'BiRRT'
-        D1 = load('Benchmark_BiRRT_PCS_3poles_rB.txt');
+        D = load('Benchmark_CBiRRT_envI_knn.txt');
+        fprintf('Failures: \t%.1f\n', 100-sum(D(:,2))/size(D,1)*100);
+        D = D(D(:,2)==1,:);
     case 'RRT'
         %D = load('Benchmark_RRT_envI_knn.txt'); 
-        D = load('Benchmark_RRT_envI_minTree.txt'); 
+        %D = load('Benchmark_RRT_envI_minTree.txt'); 
+        %D = load('Benchmark_RRT_envI_nnR.txt'); 
+        D = load('Benchmark_RRT_envI_dimpca.txt'); 
         fprintf('Failures: \t%.1f\n', 100-sum(D(:,2))/size(D,1)*100);
         D = D(D(:,2)==1,:); 
 end
@@ -43,5 +47,5 @@ xlabel('k-nearest neighbors');
 
 %%
 fprintf('%d results for each k.\n', floor(size(D,1)/length(r)));
-fprintf('k = %d provides the minimum runtime of: %.2f.\n', r(im), tmin);
+fprintf('k = %.1f provides the minimum runtime of: %.2f.\n', r(im), tmin);
 

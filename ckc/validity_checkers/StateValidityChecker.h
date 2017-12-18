@@ -17,7 +17,7 @@
 
 #include "kdl_class.h"
 #include "collisionDetection.h"
-#include "../utils/pca.h"
+#include "../../utils/pca.h"
 
 #include <iostream>
 
@@ -120,10 +120,13 @@ public:
 	}
 
 	/** Sample based on pca of nearest neighbors */
-	State sample_pca(Matrix);
+	State sample_pca(Matrix, int = 6);
 
 	/** Reconstruct a vector in the pca subspace to the C-space */
 	State reconstruct_pca(State);
+
+	/** Find the number of dimensions that preseve a certain percent of the information */
+	int get_dim_pca();		
 
 	/** Return matrix of coordinated along the rod (in rod coordinate frame) */
 	Matrix getPMatrix() {
