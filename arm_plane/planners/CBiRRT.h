@@ -118,7 +118,7 @@ namespace ompl
             double nn_radius_;
     
             // Flag to whether use PCA
-            bool usePCA = true;
+            bool usePCA = false;
 
         protected:
 
@@ -211,15 +211,15 @@ namespace ompl
             State random_q();
 
             /** \brief Save solution path to two files */
-            void save2file(vector<Motion*>, vector<Motion*>);
+            void save2file(std::vector<Motion*>, std::vector<Motion*>);
 
             // Should be removed bt verification class!!!!
-            bool check_path(vector<Motion*> mpath1, vector<Motion*> mpath2);
+            bool check_path(std::vector<Motion*> mpath1, std::vector<Motion*> mpath2);
 
-            void timeMinPath(vector<Motion*>);
+            void timeMinPath(std::vector<Motion*>);
 
             // Smooth the solution path
-            void smoothPath(vector<Motion*> &path);
+            void smoothPath(std::vector<Motion*> &path);
 
             /** \brief Sample in PCA lower space */
 	        void samplePCA(TreeData &, Motion *, base::State *);

@@ -82,34 +82,24 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
 void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype, double max_step, int knn) {
 
 	// construct the state space we are planning inz
-	ob::StateSpacePtr Q(new ob::RealVectorStateSpace(12)); // Angles of Robot 1 & 2 - R^12
+	ob::StateSpacePtr Q(new ob::RealVectorStateSpace(7)); // Angles of Robot 1 & 2 - R^7
 
-	// set the bounds for the Q=R^12 part of 'Cspace'
-	ob::RealVectorBounds Qbounds(12);
-	Qbounds.setLow(0, -2.88); // Robot 1
-	Qbounds.setHigh(0, 2.88);
-	Qbounds.setLow(1, -1.919);
-	Qbounds.setHigh(1, 1.919);
-	Qbounds.setLow(2, -1.919);
-	Qbounds.setHigh(2, 1.22);
-	Qbounds.setLow(3, -2.79);
-	Qbounds.setHigh(3, 2.79);
-	Qbounds.setLow(4, -2.09);
-	Qbounds.setHigh(4, 2.09);
-	Qbounds.setLow(5, -PI);// -6.98); // Should be -6.98 but currently the IK won't allow it - this impacts the sampler
-	Qbounds.setHigh(5, PI);// 6.98); // Should be 6.98 but currently the IK won't allow it
-	Qbounds.setLow(6, -2.88); // Robot 2
-	Qbounds.setHigh(6, 2.88);
-	Qbounds.setLow(7, -1.919);
-	Qbounds.setHigh(7, 1.919);
-	Qbounds.setLow(8, -1.919);
-	Qbounds.setHigh(8, 1.22);
-	Qbounds.setLow(9, -2.79);
-	Qbounds.setHigh(9, 2.79);
-	Qbounds.setLow(10, -2.09);
-	Qbounds.setHigh(10, 2.09);
-	Qbounds.setLow(11, -PI);// -6.98); // Should be -6.98 but currently the IK won't allow it
-	Qbounds.setHigh(11, PI);// 6.98); // Should be 6.98 but currently the IK won't allow it
+	// set the bounds for the Q=R^7 part of 'Cspace'
+	ob::RealVectorBounds Qbounds(7);
+	Qbounds.setLow(0, -2.461); // S0
+	Qbounds.setHigh(0, 0.89);
+	Qbounds.setLow(1, -2.147); // S1
+	Qbounds.setHigh(1, +1.047);
+	Qbounds.setLow(2, -3.028); // E0
+	Qbounds.setHigh(2, +3.028);
+	Qbounds.setLow(3, -1.6232); // E1
+	Qbounds.setHigh(3, 1.0472);
+	Qbounds.setLow(4, -3.059); // W0
+	Qbounds.setHigh(4, 3.059);
+	Qbounds.setLow(5, -1.571); // W1
+	Qbounds.setHigh(5, 2.094);
+	Qbounds.setLow(6, -3.059); // W2
+	Qbounds.setHigh(6, 3.059);
 
 	// set the bound for the compound space
 	Q->as<ob::RealVectorStateSpace>()->setBounds(Qbounds);
@@ -127,13 +117,13 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 
 	// create start state
 	ob::ScopedState<ob::RealVectorStateSpace> start(Cspace);
-	for (int i = 0; i < 12; i++) {
+	for (int i = 0; i < 7; i++) {
 		start->as<ob::RealVectorStateSpace::StateType>()->values[i] = c_start[i]; // Access the first component of the start a-state
 	}
 
 	// create goal state
 	ob::ScopedState<ob::RealVectorStateSpace> goal(Cspace);
-	for (int i = 0; i < 12; i++) {
+	for (int i = 0; i < 7; i++) {
 		goal->as<ob::RealVectorStateSpace::StateType>()->values[i] = c_goal[i]; // Access the first component of the goal a-state
 	}
 
@@ -265,21 +255,33 @@ int main(int argn, char ** args) {
 
 	State c_start, c_goal;
 	if (env == 1) {
-		c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
-		//State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015}; // Robot 2 backfilp - Elbow down
-		c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
+		c_start = {-0.696242, -0.819496, -0.494325, 0.261059, -2.5861, -0.726482, -1.69448};
+		c_goal = {0.699511, 0.213128, -1.92746, -1.18673, -1.13097, -1.42638, 0.506714};
 		Plan.set_environment(1);
 	}
 	else if (env == 2) {
-		c_start = {1.1, 1.1, 0, 1.24, -1.5708, 0, -0.79567, 0.60136, 0.43858, -0.74986, -1.0074, -0.092294};
-		c_goal = {-1.1, 1.35, -0.2, -1, -1.9, 0, 0.80875, 0.72363, -0.47891, -1.0484, 0.73278, 1.7491};
+		c_start = {-0.570546, 0.0619954, 1.50819, -1.1719, 1.64543, -1.39818, -0.358728};
+		c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096}; 
 		Plan.set_environment(2);
 	}
 
 	int mode = 2;
 	switch (mode) {
 	case 1: {
-		Plan.plan(c_start, c_goal, runtime, ptype, 2.8, 12);
+		StateValidityChecker svc;
+
+		//State q(7,0);// = c_start;
+		//cout << svc.EE_bounds(c_start) << endl;
+
+		//while(1) {
+			//c_start = svc.sample_q();
+			//c_goal = svc.sample_q();
+			
+			Plan.plan(c_start, c_goal, runtime, ptype, 1.4, 12);
+
+		// if (Plan.solved_bool)
+		// 	break;
+		// }
 
 		break;
 	}
@@ -287,8 +289,8 @@ int main(int argn, char ** args) {
 		ofstream GD;
 		double d;
 		if (env == 1) {
-			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_8.txt", ios::app);
-			d = 2.8;
+			GD.open("./matlab/Benchmark_" + plannerName + "_wo.txt", ios::app);
+			d = 1.6;
 		}
 		else if (env == 2) {
 			GD.open("./matlab/Benchmark_" + plannerName + "_envII_w.txt", ios::app);
@@ -313,7 +315,7 @@ int main(int argn, char ** args) {
 	case 3 : { // Benchmark maximum step size
 		ofstream GD;
 		if (env == 1)
-			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_rB.txt", ios::app);
+			GD.open("./matlab/Benchmark_" + plannerName + "_w_rB.txt", ios::app);
 		else if (env == 2)
 			GD.open("./matlab/Benchmark_" + plannerName + "_envII_w_rB.txt", ios::app);
 

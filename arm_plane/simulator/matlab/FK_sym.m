@@ -1,9 +1,9 @@
-function Q = FK_sym(q)
+function Q = FK_sym()
 
 PhyPro;
 
-% syms q1 q2 q3 q4 q5 q6 q7
-% q = [q1 q2 q3 q4 q5 q6 q7];
+syms q1 q2 q3 q4 q5 q6 q7
+q = [q1 q2 q3 q4 q5 q6 q7];
 
 
 T{1} = Tz(q(1)) * Tt([l2a; 0; l2b]);
@@ -22,10 +22,10 @@ end
 
 % P = P(:,1:3);
 
-% Q = simplify(Q);
-% for i = 1:7
-%     Q = subs(Q, ['q' num2str(i)], ['q[' num2str(i-1) ']']);
-% end
+Q = simplify(Q);
+for i = 1:7
+    Q = subs(Q, ['q' num2str(i)], ['q[' num2str(i-1) ']']);
+end
 
 end
 

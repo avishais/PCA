@@ -14,14 +14,14 @@
 clear all
 clc
 
-d = 2.8;
+d = 1.6;
 %%
 planners = {'BiRRT','RRT'};
-plannerType = planners{2};
+plannerType = planners{1};
 switch plannerType
     case 'BiRRT'
-        D{1} = load('Benchmark_CBiRRT_envI_w_8.txt'); 
-        D{2} = load('Benchmark_CBiRRT_envI_wo.txt');
+        D{1} = load('Benchmark_CBiRRT_wo.txt'); 
+        D{2} = load('Benchmark_CBiRRT_wo.txt');
         D{1} = [d*ones(size(D{1},1),1) D{1}];
         D{2} = [d*ones(size(D{2},1),1) D{2}];
         D{1} = D{1}(D{1}(:,2)==1,:); 
@@ -112,7 +112,7 @@ hold off
 xlabel('maximum runtime (sec)');
 ylabel('failure rate (%)');
 legend('wPCA','woPCA');
-xlim([0 8]);%max([T1 T2])]);
+% xlim([0 8]);%max([T1 T2])]);
 % title(plannerType);
 set(gca,'fontsize',13);
 % set(h, 'Position', [100, 100, 800, 400]);

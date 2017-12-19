@@ -198,7 +198,7 @@ protected:
 
     // ***************** My additional functions ************************
     /** \brief Save solution path to two files */
-	void save2file(vector<Motion*>);
+	void save2file(std::vector<Motion*>);
 
 	/** \brief Sample in PCA lower space */
 	void samplePCA(Motion *, base::State *);

@@ -9,11 +9,11 @@ clc
 d = 2.8;
 %%
 planners = {'BiRRT','RRT'};
-plannerType = planners{2};
+plannerType = planners{1};
 switch plannerType
     case 'BiRRT'
-        D1 = load('Benchmark_BiRRT_PCS_3poles_rB.txt');
-        D2 = load('Benchmark_BiRRT_GD_3poles_rB.txt');
+        D{1} = load('Benchmark_CBiRRT_rB.txt');
+        D{2} = load('Benchmark_CBiRRT_w_rB.txt');
     case 'RRT'
         D{1} = load('Benchmark_RRT_envI_w_rB_2.txt'); 
         D{2} = load('Benchmark_RRT_envI_wo_rB.txt'); 
@@ -32,8 +32,8 @@ for k = 1:size(D,2)
     r{k} = sort(unique(D{k}(:,1)));
     for i = 1:length(r{k})
         M = D{k}(D{k}(:,1)==r{k}(i), 1:end);
-        t{k}(i) = mean(M(:,4))*1e3;
-        t_ste{k}(i) = 1e3*std(M(:,4))/sqrt(size(M,1));
+        t{k}(i) = mean(M(:,4));
+        t_ste{k}(i) = std(M(:,4))/sqrt(size(M,1));
     end
     
     [tmin(k), im(k)] = min(t{k});

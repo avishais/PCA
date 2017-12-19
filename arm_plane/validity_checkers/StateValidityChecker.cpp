@@ -51,7 +51,6 @@ void StateValidityChecker::printStateVector(const ob::State *state) {
 }
 
 State StateValidityChecker::sample_q() {
-	// c is a 12 dimensional vector composed of [q1 q2]
 
 	State q(n);
 
@@ -65,7 +64,7 @@ State StateValidityChecker::sample_q() {
 			continue;
 		}
 
-		if ( withObs && (collision_state(q)) )  {
+		if ( withObs && (collision_state(q, q2)) )  {
 			sampling_counter[1]++;
 			continue;
 		}
@@ -95,7 +94,7 @@ bool StateValidityChecker::IKproject(State &q, bool includeObs) {
 	if (!project(q))
 		return false;
 
-	if (includeObs && withObs && collision_state(q))
+	if (includeObs && withObs && collision_state(q, q2))
 		return false;
 
 	return true;
@@ -114,7 +113,7 @@ bool StateValidityChecker::isValid(const ob::State *state) {
 	if (!project(q))
 		return false;
 
-	if (withObs && collision_state(q))
+	if (withObs && collision_state(q, q2))
 		return false;
 
 	updateStateVector(state, q);
@@ -174,7 +173,7 @@ bool StateValidityChecker::isValidRBS(State &q) {
 	if (!project(q))
 		return false;
 
-	if (withObs && collision_state(q))
+	if (withObs && collision_state(q, q2))
 		return false;
 
 	return true;
@@ -279,112 +278,112 @@ bool StateValidityChecker::reconstructRBS(State q1, State q2, Matrix &M, int ite
 
 // ------------------------------------ PCA functions ----------------------------------------------------
 
-// State StateValidityChecker::sample_pca(Matrix nhbr, int dim_pca) {
+State StateValidityChecker::sample_pca(Matrix nhbr, int dim_pca) {
 
-// 	int num_records = nhbr.size();	
-// 	set_num_records(num_records);
+	int num_records = nhbr.size();	
+	set_num_records(num_records);
 
-// 	// cout << "dim_pca: " << dim_pca << endl;
+	// cout << "dim_pca: " << dim_pca << endl;
 
-// 	// cout << "nhbr: \n";
-// 	// printMatrix(nhbr);
+	// cout << "nhbr: \n";
+	// printMatrix(nhbr);
 
-// 	// ofstream F;
-// 	// F.open("records.txt");
+	// ofstream F;
+	// F.open("records.txt");
 
-// 	for (int i = 0; i < num_records; i++) {
-// 		add_record(nhbr[i]);
-// 		// for (int j = 0; j < nhbr[i].size(); j++)
-// 		// 	F << nhbr[i][j] << " ";
-// 		// F << endl;
-// 	}
-// 	// F.close();
+	for (int i = 0; i < num_records; i++) {
+		add_record(nhbr[i]);
+		// for (int j = 0; j < nhbr[i].size(); j++)
+		// 	F << nhbr[i][j] << " ";
+		// F << endl;
+	}
+	// F.close();
 		
-// 	//print_records();
+	//print_records();
 
-// 	solve();
+	solve();
 
-// 	dim_pca = get_dim_pca();
+	dim_pca = get_dim_pca();
 	
-// 	State q_pca(dim_pca);
-// 	for (int i = 0; i < dim_pca; i++)
-// 		q_pca[i] = -PI + (double)rand()/RAND_MAX * 2*PI;
-// 	// q_pca[0] = 1;
+	State q_pca(dim_pca);
+	for (int i = 0; i < dim_pca; i++)
+		q_pca[i] = -PI + (double)std::rand()/RAND_MAX * 2*PI;
+	// q_pca[0] = 1;
 
-// 	// cout << "q_pca: ";
-// 	// printVector(q_pca);
+	// cout << "q_pca: ";
+	// printVector(q_pca);
 
-// 	State q = reconstruct_pca(q_pca);
+	State q = reconstruct_pca(q_pca);
 
-// 	// cout << "q: ";
-// 	// printVector(q);
-// 	// cin.ignore();
-// 	return q;
-// }
+	// cout << "q: ";
+	// printVector(q);
+	// cin.ignore();
+	return q;
+}
 
-// State StateValidityChecker::reconstruct_pca(State q) {
-// 	arma::Mat<double> E(n, q.size());
-// 	arma::Col<double> qp(q.size());
-// 	arma::Col<double> qm(n);
-// 	State eigv(n), qs(n), q_mean(n);
+State StateValidityChecker::reconstruct_pca(State q) {
+	arma::Mat<double> E(n, q.size());
+	arma::Col<double> qp(q.size());
+	arma::Col<double> qm(n);
+	State eigv(n), qs(n), q_mean(n);
 
-// 	// cout << "eigv: \n";
-// 	for (int i = 0; i < q.size(); i++) {
-// 		eigv = get_eigenvector(i);
-// 		// printVector(eigv);
-// 		q_mean = get_mean_values();
-// 		for (int j = 0; j < eigv.size(); j++) {
-// 			E(j,i) = eigv[j];
-// 			qm(j) = q_mean[j];
-// 		}
-// 		qp(i) = q[i];
-// 	}
+	// cout << "eigv: \n";
+	for (int i = 0; i < q.size(); i++) {
+		eigv = get_eigenvector(i);
+		// printVector(eigv);
+		q_mean = get_mean_values();
+		for (int j = 0; j < eigv.size(); j++) {
+			E(j,i) = eigv[j];
+			qm(j) = q_mean[j];
+		}
+		qp(i) = q[i];
+	}
 
-// 	// cout << "E: \n";
-// 	// for (int i = 0; i < eigv.size(); i++) {
-// 	// 	for (int j = 0; j < q.size(); j++) 
-// 	// 		cout << E(i,j) << " ";
-// 	// 	cout << endl;
-// 	// }
+	// cout << "E: \n";
+	// for (int i = 0; i < eigv.size(); i++) {
+	// 	for (int j = 0; j < q.size(); j++) 
+	// 		cout << E(i,j) << " ";
+	// 	cout << endl;
+	// }
 
-// 	// cout << "q_mean: ";
-// 	// printVector(q_mean);
+	// cout << "q_mean: ";
+	// printVector(q_mean);
 
-// 	arma::Col<double> qr(n);
-// 	qr = E * qp + qm;
+	arma::Col<double> qr(n);
+	qr = E * qp + qm;
 
-// 	for (int j = 0; j < qr.size(); j++)
-// 		qs[j] = qr(j);
+	for (int j = 0; j < qr.size(); j++)
+		qs[j] = qr(j);
 
-// 	// cout << "qs: ";
-// 	// printVector(qs);
+	// cout << "qs: ";
+	// printVector(qs);
 
-// 	return qs;
-// }
+	return qs;
+}
 
-// int StateValidityChecker::get_dim_pca() {
+int StateValidityChecker::get_dim_pca() {
 
-// 	State evl = get_eigenvalues();
-// 	double sum_evl = 0;
-// 	for (int i = 0; i < evl.size(); i++)
-// 		sum_evl += evl[i];
-// 	for (int i = 0; i < evl.size(); i++)
-// 		evl[i] /= sum_evl;
-// 	// cout << "evl: "; printVector(evl);
+	State evl = get_eigenvalues();
+	double sum_evl = 0;
+	for (int i = 0; i < evl.size(); i++)
+		sum_evl += evl[i];
+	for (int i = 0; i < evl.size(); i++)
+		evl[i] /= sum_evl;
+	// cout << "evl: "; printVector(evl);
 
-// 	int i = 0;
-// 	sum_evl = 0;
-// 	while (i < 12) {
-// 		sum_evl += evl[i];
-// 		if (sum_evl > 0.99)
-// 			break;
-// 		i++;
-// 	}
+	int i = 0;
+	sum_evl = 0;
+	while (i < 12) {
+		sum_evl += evl[i];
+		if (sum_evl > 0.99)
+			break;
+		i++;
+	}
 
-// 	// cout << i << endl;
+	// cout << i << endl;
 
-// 	return i;
-// }
+	return i;
+}
 	
 
 // ------------------------------------ MISC functions ---------------------------------------------------
@@ -423,17 +422,16 @@ void StateValidityChecker::log_q(State q, bool New) {
 	std::ofstream myfile;
 
 	if (New) {
-		myfile.open("../paths/path.txt");
+		myfile.open("./paths/path.txt");
 		myfile << 1 << endl;
 	}
 	else
-		myfile.open("../paths/path.txt", ios::app);
+		myfile.open("./paths/path.txt", ios::app);
 
 	for (int j = 0; j < n; j++)
 		myfile << q[j] << " ";
-	myfile << -PI/2;
-	for (int j = 1; j < n; j++)
-		myfile << 0 << " ";
+	for (int j = 0; j < n; j++)
+		myfile << q2[j] << " ";
 	myfile << endl;
 
 	myfile.close();
@@ -460,8 +458,8 @@ void StateValidityChecker::LogPerf2file() {
 	myfile << sampling_time << endl;
 	myfile << sampling_counter[0] << endl;
 	myfile << sampling_counter[1] << endl;
-	//myfile << get_pca_count() << endl;
-	//myfile << get_pca_time() << endl;
+	myfile << get_pca_count() << endl;
+	myfile << get_pca_time() << endl;
 
 	myfile.close();
 }

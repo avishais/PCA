@@ -17,7 +17,7 @@
 
 #include "projectC.h"
 #include "collisionDetection.h"
-//#include "../../utils/pca.h"
+#include "../../utils/pca.h"
 
 #include <iostream>
 
@@ -26,24 +26,25 @@
 namespace ob = ompl::base;
 using namespace std;
 
-class StateValidityChecker : public collisionDetection, public projectC//, public stats::pca
+class StateValidityChecker : public collisionDetection, public projectC, public stats::pca
 {
 public:
 	/** Constructors */
 	StateValidityChecker(const ob::SpaceInformationPtr &si) :
 		n(7),
-		mysi_(si.get())
-		//stats::pca(n)
+		mysi_(si.get()),
+		stats::pca(7)
 			{q_prev.resize(n);
 				set_n(n);
-			//set_do_bootstrap(false, 100);
+			set_do_bootstrap(false, 100);
 			}; //Constructor
 	StateValidityChecker() :
-		n(7)
-		//stats::pca(n)
+		n(7),
+		stats::pca(7)
 			{q_prev.resize(n);
 				set_n(n);
-			//set_do_bootstrap(false, 100);
+				initiate_log_parameters();
+			set_do_bootstrap(false, 100);
 			}; //Constructor
 
 	/** Validity check using standard OMPL */
@@ -108,14 +109,14 @@ public:
 		return valid_solution_index;
 	}
 
-	// /** Sample based on pca of nearest neighbors */
-	// State sample_pca(Matrix, int = 6);
+	/** Sample based on pca of nearest neighbors */
+	State sample_pca(Matrix, int = 6);
 
-	// /** Reconstruct a vector in the pca subspace to the C-space */
-	// State reconstruct_pca(State);
+	/** Reconstruct a vector in the pca subspace to the C-space */
+	State reconstruct_pca(State);
 
-	// /** Find the number of dimensions that preseve a certain percent of the information */
-	// int get_dim_pca();		
+	/** Find the number of dimensions that preseve a certain percent of the information */
+	int get_dim_pca();		
 
 	/** Performance parameters measured during the planning */
 	int isValid_counter;
@@ -170,21 +171,19 @@ public:
 
 	void LogPerf2file();
 
+	State q2 = {PI/2, 0, 0, 0, 0, 0, 0}; // Constant angle for the second arm
+
 private:
 	ob::StateSpace *stateSpace_;
-	ob::SpaceInformation    *mysi_;
+	ob::SpaceInformation *mysi_;
 	int valid_solution_index;
 	State q_prev;
 
 	double dq = 0.05; // Serial local connection resolution
-	bool withObs = false; // Include obstacles?
+	bool withObs = true; // Include obstacles?
 	double RBS_tol = 0.05; // RBS local connection resolution
 	int RBS_max_depth = 150; // Maximum RBS recursion depth
 	int n; // Dimension of system
 };
-
-
-
-
 
 #endif /* CHECKER_H_ */

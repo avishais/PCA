@@ -105,7 +105,7 @@ bool projectC::project(State &q_init) {
     }
 
     bool result = true;
-    if (fabs(height(q_init)-height_d) > 3 || fabs(pitch(q_init)-pitch_d) > 0.1 || !check_angle_limits(q_init)) 
+    if (fabs(height(q_init)-height_d) > 3 || fabs(pitch(q_init)-pitch_d) > 0.1 || !check_angle_limits(q_init) || !EE_bounds(q_init)) 
         result = false;
 
 	IK_time += double(clock() - begin) / CLOCKS_PER_SEC;
@@ -160,6 +160,23 @@ bool projectC::check_angle_limits(State q) {
 
 	return true;
 }
+
+bool projectC::EE_bounds(State q) {
+
+    double x = 73*cos(q[0]) - (2707*(sin(q[0])*sin(q[2]) + cos(q[0])*cos(q[2])*sin(q[1]))*(cos(q[3]) + 0))/10 - (sin(q[0])*sin(q[2]) + cos(q[0])*cos(q[2])*sin(q[1]))*(100*cos(q[3]) + 0) - 310*sin(q[5])*(cos(q[4])*((sin(q[0])*sin(q[2]) + cos(q[0])*cos(q[2])*sin(q[1]))*(0 - sin(q[3])) + cos(q[0])*cos(q[1])*(cos(q[3]) + 0)) + sin(q[4])*(cos(q[2])*sin(q[0]) - cos(q[0])*sin(q[1])*sin(q[2]))) - 10*cos(q[4])*((sin(q[0])*sin(q[2]) + cos(q[0])*cos(q[2])*sin(q[1]))*(0 - sin(q[3])) + cos(q[0])*cos(q[1])*(cos(q[3]) + 0)) - 310*cos(q[5])*((sin(q[0])*sin(q[2]) + cos(q[0])*cos(q[2])*sin(q[1]))*(cos(q[3]) + 0) - cos(q[0])*cos(q[1])*(0 - sin(q[3]))) + (17471*cos(q[0])*cos(q[1]))/50 - 69*sin(q[0])*sin(q[2]) - 10*sin(q[4])*(cos(q[2])*sin(q[0]) - cos(q[0])*sin(q[1])*sin(q[2])) - 69*cos(q[0])*cos(q[2])*sin(q[1]) + cos(q[0])*cos(q[1])*(0 - 100*sin(q[3])) + (2707*cos(q[0])*cos(q[1])*(0 - sin(q[3])))/10 + 3017/50;
+    double y = 73*sin(q[0]) + (2707*(cos(q[0])*sin(q[2]) - cos(q[2])*sin(q[0])*sin(q[1]))*(cos(q[3]) + 0))/10 + (cos(q[0])*sin(q[2]) - cos(q[2])*sin(q[0])*sin(q[1]))*(100*cos(q[3]) + 0) + 310*sin(q[5])*(cos(q[4])*((cos(q[0])*sin(q[2]) - cos(q[2])*sin(q[0])*sin(q[1]))*(0 - sin(q[3])) - cos(q[1])*sin(q[0])*(cos(q[3]) + 0)) + sin(q[4])*(cos(q[0])*cos(q[2]) + sin(q[0])*sin(q[1])*sin(q[2]))) + 10*cos(q[4])*((cos(q[0])*sin(q[2]) - cos(q[2])*sin(q[0])*sin(q[1]))*(0 - sin(q[3])) - cos(q[1])*sin(q[0])*(cos(q[3]) + 0)) + 310*cos(q[5])*((cos(q[0])*sin(q[2]) - cos(q[2])*sin(q[0])*sin(q[1]))*(cos(q[3]) + 0) + cos(q[1])*sin(q[0])*(0 - sin(q[3]))) + (17471*cos(q[1])*sin(q[0]))/50 + 69*cos(q[0])*sin(q[2]) + 10*sin(q[4])*(cos(q[0])*cos(q[2]) + sin(q[0])*sin(q[1])*sin(q[2])) - 69*cos(q[2])*sin(q[0])*sin(q[1]) + cos(q[1])*sin(q[0])*(0 - 100*sin(q[3])) + (2707*cos(q[1])*sin(q[0])*(0 - sin(q[3])))/10 - 250;
+
+    //cout << x << " " << y << endl;
+
+    if (x < x_min || x > x_max || y < y_min || y > y_max)
+        return false;
+
+	return true;
+}
+
+
+// -----------------------------------------------------------------------------------------
+
 
 double projectC::deg2rad(double deg) {
 	return deg * PI / 180.0;

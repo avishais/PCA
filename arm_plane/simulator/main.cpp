@@ -28,7 +28,7 @@ PQP_REAL M0[3][3],M1[3][3],M2[3][3],M3[3][3],M4[3][3],Trod[3], Trod2[3];
 PQP_REAL M5[3][3],M6[3][3],M7[3][3],M8[3][3],TEE[3],TEE2[3];
 
 int step;
-bool withObs = true;
+bool withObs = false;
 bool grasp_pose = true; // false - rod is grasped such that it is continuous to the arm, true - rod is grasped perpendicular to the gripper plane
 
 double oglm[16];
@@ -58,6 +58,8 @@ double rot1, rot2, rot3, rot4, rot5, rot6, rot12, rot22, rot23, rot32, rot42, ro
 int visualizeRobots = 1, visualize = 1;
 double blackFrame[] = {50./255,50./255,50./255};
 double redFrame[] = {175./255,0./255,0./255};
+
+void execute_path(int);
 
 void pm(PQP_REAL M[][3], std::string str) {
 	std::cout << str << std::endl;
@@ -157,6 +159,12 @@ void KeyboardCB(unsigned char key, int x, int y)
 	case '=': rot52 += .1; break;
 	case 'o': rot62 += .1; break;
 	case 'p': rot72 += .1; break;
+	case 'r':
+		std::cout << "Updating path...\n";
+		//execute_path(0);
+		step = 0;
+		glutTimerFunc(10,execute_path,0);
+		break;
 	}
 
 	glutPostRedisplay();
@@ -689,20 +697,21 @@ void DisplayCB()
 		glPopMatrix();
 	}
 
+	// Table
+	MRotZ(R0,3.1415926/2);
+	Ti[0] = 850; Ti[1] = 0; Ti[2] = -20;
+	glColor3d(.93, .69, .13);//172/255.0, 102/255.0, 13/255.0);//0.0,0.0,1.0);
+	MVtoOGL(oglm,R0,Ti);
+	glPushMatrix();
+	glMultMatrixd(oglm);
+	table_to_draw->Draw();
+	glPopMatrix();
+
 	if(withObs){
-		// Table
-		MRotZ(R0,3.1415926/2);
-		Ti[0] = 850; Ti[1] = 0; Ti[2] = -20;
-		glColor3d(.93, .69, .13);//172/255.0, 102/255.0, 13/255.0);//0.0,0.0,1.0);
-		MVtoOGL(oglm,R0,Ti);
-		glPushMatrix();
-		glMultMatrixd(oglm);
-		table_to_draw->Draw();
-		glPopMatrix();
 
 		// Obs 1
 		MRotZ(R0,0);
-		Ti[0] = 735; Ti[1] = -300; Ti[2] = 20;
+		Ti[0] = 735; Ti[1] = -300; Ti[2] = -20;
 		glColor3d(1.0,1.0,1.0);
 		MVtoOGL(oglm,R0,Ti);
 		glPushMatrix();
@@ -1166,11 +1175,7 @@ void load_models(){
 	clmp2.EndModel();
 	fclose(fp);
 
-	// Obstacles
-
-	if (withObs) {
-
-		// initialize table
+			// initialize table
 		table_to_draw = new Model("table.tris");
 
 		fp = fopen("table.tris","r");
@@ -1191,6 +1196,10 @@ void load_models(){
 		}
 		table.EndModel();
 		fclose(fp);
+
+	// Obstacles
+
+	if (withObs) {
 
 		// initialize obs1
 		obs1_to_draw = new Model("obs.tris");
@@ -1299,8 +1308,10 @@ int main(int argc, char **argv)
 		else
 			sim_velocity = 200;
 	}
-	else
-		sim_velocity = 200;
+	else {
+		step_sim = false;
+		sim_velocity = 50;
+	}
 
 
 	glutInit(&argc, argv);

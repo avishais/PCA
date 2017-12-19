@@ -14,7 +14,7 @@ typedef matrix<double, 0, 1> column_vector;
 
 #define PI 3.14
 
-const double height_d = 20, pitch_d = PI/2;
+const double height_d = 0, pitch_d = PI/2;
 
 enum solver_type {BFGS, LBFGS};
 
@@ -35,6 +35,9 @@ public:
 
     /** Check the angles limits of the Baxter - IK based on a constant trans. matrix */
     bool check_angle_limits(State);
+
+    /** Check if EE is in the workspace bounds */
+    bool EE_bounds(State);
     
     double deg2rad(double);
 
@@ -64,5 +67,5 @@ private:
 
     State qmin, qmax; // Joint limits
 
-    
+    const double x_max = 1163, x_min = 147, y_max = 960, y_min = -960;
 };

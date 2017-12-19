@@ -46,7 +46,7 @@ void o(T a) {
 	cout << a << endl;
 }
 
-ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxStep, int env, int knn) : base::Planner(si, "CBiRRT"), StateValidityChecker(si, env)
+ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxStep, int env, int knn) : base::Planner(si, "CBiRRT"), StateValidityChecker(si)
 {
 	specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 	specs_.directed = true;
@@ -125,8 +125,8 @@ double ompl::geometric::CBiRRT::distanceBetweenTrees(TreeData &tree1, TreeData &
 	std::vector<Motion*> motions;
 	tree1->list(motions);
 
-	min_state1.resize(12);
-	min_state2.resize(12);
+	min_state1.resize(get_n());
+	min_state2.resize(get_n());
 
 	Motion *nmotion;
 	double minD = 1e10, curD;
@@ -147,7 +147,7 @@ State ompl::geometric::CBiRRT::random_q() {
 	base::State *state = si_->allocState();
 	sampler_->sampleUniform(state);
 
-	State q(12);
+	State q(get_n());
 	retrieveStateVector(state, q);
 
 	return q;
@@ -158,7 +158,7 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 // nmotion - nearest
 // mode = 1 -> extend, mode = 2 -> connect.
 {
-	State q(12);
+	State q(get_n());
 
 	bool reach = false;
 	growTree_reached = false;
@@ -240,7 +240,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 	base::State *start_node = si_->allocState();
 	setRange(Range); // Maximum local connection distance *** will need to profile this value
 
-	State q(12);
+	State q(get_n());
 
 	checkValidity();
 	startTime = clock();
@@ -483,7 +483,7 @@ void ompl::geometric::CBiRRT::samplePCA(TreeData &tree, Motion *nmotion, base::S
     State q(get_n());
 
     // Find up to knn nearest neighbors to nmotion in the tree
-    tree->nearestK(nmotion, min(knn_, tree->size()), nhbr); //
+    tree->nearestK(nmotion, std::min(knn_, (int)tree->size()), nhbr); //
     //nn_->nearestR(nmotion, nn_radius_, nhbr);
 
     // Create vector<vector> db for neighbors
@@ -500,7 +500,7 @@ void ompl::geometric::CBiRRT::samplePCA(TreeData &tree, Motion *nmotion, base::S
     updateStateVector(rstate, q);
 }   
 
-bool ompl::geometric::CBiRRT::check_path(vector<Motion*> mpath1, vector<Motion*> mpath2) {
+bool ompl::geometric::CBiRRT::check_path(std::vector<Motion*> mpath1, std::vector<Motion*> mpath2) {
 
 	int j = 1;
 	bool validMotion = true;
@@ -552,7 +552,7 @@ bool ompl::geometric::CBiRRT::check_path(vector<Motion*> mpath1, vector<Motion*>
 	return validMotion;
 }
 
-/*void ompl::geometric::CBiRRT::timeMinPath(vector<Motion*> path) {
+/*void ompl::geometric::CBiRRT::timeMinPath(std::vector<Motion*> path) {
 
 	IK_counter = 0;
 	IK_time = 0;
@@ -573,7 +573,7 @@ bool ompl::geometric::CBiRRT::check_path(vector<Motion*> mpath1, vector<Motion*>
 
 }*/
 
-void ompl::geometric::CBiRRT::smoothPath(vector<Motion*> &path) {
+void ompl::geometric::CBiRRT::smoothPath(std::vector<Motion*> &path) {
 
 	int orgSize = path.size();
 	int s, c = 30;
@@ -581,8 +581,8 @@ void ompl::geometric::CBiRRT::smoothPath(vector<Motion*> &path) {
 		s = path.size();
 		int i1, i2;
 		do {
-			i1 = rand() % path.size();
-			i2 = rand() % path.size();
+			i1 = std::rand() % path.size();
+			i2 = std::rand() % path.size();
 		} while (abs(i1-i2) < 2);
 
 		if (checkMotionRBS(path[i1]->state, path[i2]->state))
@@ -600,11 +600,12 @@ void ompl::geometric::CBiRRT::smoothPath(vector<Motion*> &path) {
 }
 
 
-void ompl::geometric::CBiRRT::save2file(vector<Motion*> mpath1, vector<Motion*> mpath2) {
+void ompl::geometric::CBiRRT::save2file(std::vector<Motion*> mpath1, std::vector<Motion*> mpath2) {
 
 	cout << "Logging path to files..." << endl;
 
-	State q(12);
+	int n = get_n();
+	State q(n);
 
 	{ // Log only milestones
 
@@ -616,14 +617,14 @@ void ompl::geometric::CBiRRT::save2file(vector<Motion*> mpath1, vector<Motion*> 
 
 		for (int i = mpath1.size() - 1 ; i >= 0 ; --i) {
 			retrieveStateVector(mpath1[i]->state, q);
-			for (int j = 0; j<12; j++) {
+			for (int j = 0; j<n; j++) {
 				myfile << q[j] << " ";
 			}
 			myfile << endl;
 		}
 		for (unsigned int i = 0 ; i < mpath2.size() ; ++i) {
 			retrieveStateVector(mpath2[i]->state, q);
-			for (int j = 0; j<12; j++) {
+			for (int j = 0; j<n; j++) {
 				myfile << q[j] << " ";
 			}
 			myfile << endl;
@@ -652,9 +653,10 @@ void ompl::geometric::CBiRRT::save2file(vector<Motion*> mpath1, vector<Motion*> 
 		//smoothPath(path);
 
 		retrieveStateVector(path[0]->state, q);
-		for (int j = 0; j < q.size(); j++) {
+		for (int j = 0; j < q.size(); j++) 
 			myfile << q[j] << " ";
-		}
+		for (int j = 0; j < q2.size(); j++) 
+			myfile << q2[j] << " ";
 		myfile << endl;
 
 		int count = 1;
@@ -671,9 +673,10 @@ void ompl::geometric::CBiRRT::save2file(vector<Motion*> mpath1, vector<Motion*> 
 
 			for (int k = 1; k < M.size(); k++) {
 				//pathLength += normDistance(M[k], M[k-1]);
-				for (int j = 0; j < M[k].size(); j++) {
+				for (int j = 0; j < M[k].size(); j++) 
 					myfile << M[k][j] << " ";
-				}
+				for (int j = 0; j < q2.size(); j++) 
+					myfile << q2[j] << " ";
 				myfile << endl;
 				count++;
 			}

@@ -1,6 +1,6 @@
 #include "collisionDetection.h"
 
-#define CADLINK "../simulator/"
+#define CADLINK "./simulator/"
 
 collisionDetection::collisionDetection() {
 
@@ -34,26 +34,26 @@ void pv(PQP_REAL V[3], std::string str) {
 	std::cout << std::endl;
 }
 
-int collisionDetection::collision_state(State q)
+int collisionDetection::collision_state(State q1, State q2)
 // Returns 0 if no collision
 {
 	collisionCheck_counter++;
 	clock_t begin = clock();
 
-	double rot1 = q[0];
-	double rot2 = q[1];
-	double rot3 = q[2];
-	double rot4 = q[3];
-	double rot5 = q[4];
-	double rot6 = q[5];
-	double rot7 = q[6];
-	double rot12 = q[7];
-	double rot22 = q[8];
-	double rot32 = q[9];
-	double rot42 = q[10];
-	double rot52 = q[11];
-	double rot62 = q[12];
-	double rot72 = q[13];
+	double rot1 = q1[0];
+	double rot2 = q1[1];
+	double rot3 = q1[2];
+	double rot4 = q1[3];
+	double rot5 = q1[4];
+	double rot6 = q1[5];
+	double rot7 = q1[6];
+	double rot12 = q2[0];
+	double rot22 = q2[1];
+	double rot32 = q2[2];
+	double rot42 = q2[3];
+	double rot52 = q2[4];
+	double rot62 = q2[5];
+	double rot72 = q2[6];
 
 	// make items for transformations
 	PQP_REAL R0[3][3],R1[3][3],R2[3][3],T0[3],T1[3],T2[3];
@@ -430,7 +430,7 @@ int collisionDetection::collision_state(State q)
 
 		// Table
 		MRotZ(Rtable,3.1415926/2);
-		Ttable[0] = 850; Ttable[1] = 0; Ttable[2] = 20;
+		Ttable[0] = 850; Ttable[1] = 0; Ttable[2] = -20;
 
 		PQP_Tolerance(&res[87],Rtable,Ttable,&table,REE,TEE,&EE,tolerance);
 		PQP_Tolerance(&res[88],Rtable,Ttable,&table,R5,T5,&link5,tolerance);

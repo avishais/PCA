@@ -41,7 +41,7 @@
 
 #include "RRT.h"
 
-ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, double maxStep, int env, int knn) : base::Planner(si, "RRT"), StateValidityChecker(si, env)
+ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, double maxStep, int env, int knn) : base::Planner(si, "RRT"), StateValidityChecker(si)
 {
     specs_.approximateSolutions = true;
     specs_.directed = true;
@@ -317,7 +317,7 @@ void ompl::geometric::RRT::samplePCA(Motion *nmotion, base::State *rstate) {
     State q(get_n());
 
     // Find up to knn nearest neighbors to nmotion in the tree
-    nn_->nearestK(nmotion, min(80, nn_->size()), nhbr); //
+    nn_->nearestK(nmotion, min(80, (int)nn_->size()), nhbr); //
     //nn_->nearestR(nmotion, nn_radius_, nhbr);
 
     // Create vector<vector> db for neighbors
@@ -334,13 +334,13 @@ void ompl::geometric::RRT::samplePCA(Motion *nmotion, base::State *rstate) {
     updateStateVector(rstate, q);
 }    
 
-void ompl::geometric::RRT::save2file(vector<Motion*> mpath) {
+void ompl::geometric::RRT::save2file(std::vector<Motion*> mpath) {
 
 	cout << "Logging path to files..." << endl;
 
 	int n = get_n();
 	State q(n);
-	vector<Motion*> path;
+	std::vector<Motion*> path;
 
 	{ // Save only milestones
 		// Open a_path file
