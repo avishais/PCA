@@ -283,41 +283,19 @@ State StateValidityChecker::sample_pca(Matrix nhbr, int dim_pca) {
 	int num_records = nhbr.size();	
 	set_num_records(num_records);
 
-	// cout << "dim_pca: " << dim_pca << endl;
-
-	// cout << "nhbr: \n";
-	// printMatrix(nhbr);
-
-	// ofstream F;
-	// F.open("records.txt");
-
-	for (int i = 0; i < num_records; i++) {
+	for (int i = 0; i < num_records; i++) 
 		add_record(nhbr[i]);
-		// for (int j = 0; j < nhbr[i].size(); j++)
-		// 	F << nhbr[i][j] << " ";
-		// F << endl;
-	}
-	// F.close();
-		
-	//print_records();
 
 	solve();
 
-	dim_pca = get_dim_pca();
+	// dim_pca = get_dim_pca();
 	
 	State q_pca(dim_pca);
 	for (int i = 0; i < dim_pca; i++)
 		q_pca[i] = -PI + (double)std::rand()/RAND_MAX * 2*PI;
-	// q_pca[0] = 1;
-
-	// cout << "q_pca: ";
-	// printVector(q_pca);
 
 	State q = reconstruct_pca(q_pca);
 
-	// cout << "q: ";
-	// printVector(q);
-	// cin.ignore();
 	return q;
 }
 
@@ -339,24 +317,11 @@ State StateValidityChecker::reconstruct_pca(State q) {
 		qp(i) = q[i];
 	}
 
-	// cout << "E: \n";
-	// for (int i = 0; i < eigv.size(); i++) {
-	// 	for (int j = 0; j < q.size(); j++) 
-	// 		cout << E(i,j) << " ";
-	// 	cout << endl;
-	// }
-
-	// cout << "q_mean: ";
-	// printVector(q_mean);
-
 	arma::Col<double> qr(n);
 	qr = E * qp + qm;
 
 	for (int j = 0; j < qr.size(); j++)
 		qs[j] = qr(j);
-
-	// cout << "qs: ";
-	// printVector(qs);
 
 	return qs;
 }
@@ -369,7 +334,6 @@ int StateValidityChecker::get_dim_pca() {
 		sum_evl += evl[i];
 	for (int i = 0; i < evl.size(); i++)
 		evl[i] /= sum_evl;
-	// cout << "evl: "; printVector(evl);
 
 	int i = 0;
 	sum_evl = 0;
@@ -379,8 +343,6 @@ int StateValidityChecker::get_dim_pca() {
 			break;
 		i++;
 	}
-
-	// cout << i << endl;
 
 	return i;
 }

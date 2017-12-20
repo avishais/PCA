@@ -6,6 +6,13 @@ clear all
 clc
 
 d = 2.8;
+
+%%
+Dwo = load('Benchmark_RRT_envI_wo.txt'); 
+Dwo = Dwo(Dwo(:,1)==1,:); 
+t_wo = mean(Dwo(:,3));
+clear Dwo
+
 %%
 planners = {'BiRRT','RRT'};
 plannerType = planners{2};
@@ -32,8 +39,8 @@ disp(['Results for ' plannerType ':']);
 r = sort(unique(D(:,1)));
 for i = 1:length(r)
     M = D(D(:,1)==r(i), 1:end);
-    t(i) = mean(M(:,4))*1e3;
-    t_ste(i) = 1e3*std(M(:,4))/sqrt(size(M,1));
+    t(i) = mean(M(:,4));
+    t_ste(i) = std(M(:,4))/sqrt(size(M,1));
 end
 
 [tmin, im] = min(t);
@@ -42,10 +49,15 @@ end
 h = figure(1);
 clf
 errorbar(r,t,t_ste,'-k','linewidth',2);
+hold on
+plot(xlim, t_wo*[1 1], ':k','linewidth',2);
+hold off
 ylabel('mean runtime [msec]');
 xlabel('k-nearest neighbors');
+legend('w/ PCA','w/o PCA');
 
 %%
 fprintf('%d results for each k.\n', floor(size(D,1)/length(r)));
 fprintf('k = %.1f provides the minimum runtime of: %.2f.\n', r(im), tmin);
+fprintf('Best speed-up: %.2f.\n', t_wo/min(t));
 

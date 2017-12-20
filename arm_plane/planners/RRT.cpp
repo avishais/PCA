@@ -58,6 +58,8 @@ ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, double maxStep, i
     Range = maxStep;
     knn_ = knn;
     //nn_radius_ = nn_radius;
+
+    cout << "*** Planning with: d = " << Range << ", and dim_pca = " << knn << " ***" << endl;    
 }
 
 ompl::geometric::RRT::~RRT()
@@ -317,7 +319,7 @@ void ompl::geometric::RRT::samplePCA(Motion *nmotion, base::State *rstate) {
     State q(get_n());
 
     // Find up to knn nearest neighbors to nmotion in the tree
-    nn_->nearestK(nmotion, min(80, (int)nn_->size()), nhbr); //
+    nn_->nearestK(nmotion, min(30, (int)nn_->size()), nhbr); //
     //nn_->nearestR(nmotion, nn_radius_, nhbr);
 
     // Create vector<vector> db for neighbors
@@ -368,9 +370,10 @@ void ompl::geometric::RRT::save2file(std::vector<Motion*> mpath) {
 		myfile.open("./paths/temp.txt",ios::out);
 
 		retrieveStateVector(path[0]->state, q);
-		for (int j = 0; j < q.size(); j++) {
+		for (int j = 0; j < q.size(); j++) 
 			myfile << q[j] << " ";
-		}
+        for (int j = 0; j < q2.size(); j++) 
+			myfile << q2[j] << " ";
 		myfile << endl;
 
 		int count = 1;
@@ -385,9 +388,10 @@ void ompl::geometric::RRT::save2file(std::vector<Motion*> mpath) {
 			}
 
 			for (int k = 1; k < M.size(); k++) {
-				for (int j = 0; j<M[k].size(); j++) {
+				for (int j = 0; j<M[k].size(); j++) 
 					myfile << M[k][j] << " ";
-				}
+                for (int j = 0; j < q2.size(); j++) 
+					myfile << q2[j] << " ";
 				myfile << endl;
 				count++;
 			}

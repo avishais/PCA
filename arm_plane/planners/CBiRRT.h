@@ -118,7 +118,7 @@ namespace ompl
             double nn_radius_;
     
             // Flag to whether use PCA
-            bool usePCA = false;
+            bool usePCA = true;
 
         protected:
 
@@ -215,8 +215,6 @@ namespace ompl
 
             // Should be removed bt verification class!!!!
             bool check_path(std::vector<Motion*> mpath1, std::vector<Motion*> mpath2);
-
-            void timeMinPath(std::vector<Motion*>);
 
             // Smooth the solution path
             void smoothPath(std::vector<Motion*> &path);

@@ -60,6 +60,8 @@ ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxS
 
 	Range = maxStep; // Maximum local connection distance
 	knn_ = knn;
+
+	cout << "*** Planning with: d = " << Range << ", and dim_pca = " << knn << " ***" << endl;
 }
 
 ompl::geometric::CBiRRT::~CBiRRT()
@@ -483,7 +485,7 @@ void ompl::geometric::CBiRRT::samplePCA(TreeData &tree, Motion *nmotion, base::S
     State q(get_n());
 
     // Find up to knn nearest neighbors to nmotion in the tree
-    tree->nearestK(nmotion, std::min(knn_, (int)tree->size()), nhbr); //
+    tree->nearestK(nmotion, std::min(60, (int)tree->size()), nhbr); //
     //nn_->nearestR(nmotion, nn_radius_, nhbr);
 
     // Create vector<vector> db for neighbors
@@ -496,7 +498,7 @@ void ompl::geometric::CBiRRT::samplePCA(TreeData &tree, Motion *nmotion, base::S
     NHBR.push_back(q);
 
     // Find new sample using pca
-    q = sample_pca(NHBR);
+    q = sample_pca(NHBR, knn_);
     updateStateVector(rstate, q);
 }   
 
@@ -551,27 +553,6 @@ bool ompl::geometric::CBiRRT::check_path(std::vector<Motion*> mpath1, std::vecto
 
 	return validMotion;
 }
-
-/*void ompl::geometric::CBiRRT::timeMinPath(std::vector<Motion*> path) {
-
-	IK_counter = 0;
-	IK_time = 0;
-	local_connection_time = 0;
-	local_connection_count = 0;
-
-	Matrix M;
-	clock_t st = clock();
-	for (int i = 1; i < path.size(); i++) {
-		//IKproject(path[i]->state);
-
-		clock_t stLC = clock();
-		local_connection_count++;
-		checkMotionRBS(path[i-1]->state, path[i]->state);
-		local_connection_time += double(clock() - stLC) / CLOCKS_PER_SEC;
-	}
-	minPathtime = double(clock() - st) / CLOCKS_PER_SEC;
-
-}*/
 
 void ompl::geometric::CBiRRT::smoothPath(std::vector<Motion*> &path) {
 
