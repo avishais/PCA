@@ -135,7 +135,7 @@ public:
 	double nn_radius_;
 
 	// Flag to whether use PCA
-	bool usePCA = false;
+	bool usePCA = true;
 
 protected:
 

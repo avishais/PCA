@@ -46,10 +46,13 @@ public:
     void printVector(State);
     
     void printCVector(column_vector);
+
+    double norm(State, State);
     
     	/** Performance parameters */
 	int IK_counter;
-	double IK_time;
+    double IK_time;
+    double proj_dist;
 	int get_IK_counter() {
 		return IK_counter;
 	}

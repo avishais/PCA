@@ -1450,7 +1450,7 @@ int fake_rod() {
 	FILE *fr = fopen(robot_pfile,"r");
 	int nlines;
 	fscanf(fr,"%i",&nlines);  //NOT include number in line count itself
-	std::cout << "Num: " << nlines << std::endl;
+	std::cout << "Path length: " << nlines << std::endl;
 	fclose(fr);
 
 	const char* rod_pfile = "../paths/rod.txt";

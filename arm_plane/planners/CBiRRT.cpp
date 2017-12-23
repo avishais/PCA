@@ -495,10 +495,12 @@ void ompl::geometric::CBiRRT::samplePCA(TreeData &tree, Motion *nmotion, base::S
         NHBR.push_back(q);
     }
     retrieveStateVector(nmotion->state, q);
-    NHBR.push_back(q);
+	NHBR.push_back(q);
+	
+	retrieveStateVector(rstate, q);
 
     // Find new sample using pca
-    q = sample_pca(NHBR, knn_);
+    q = sample_pca(NHBR, q, knn_);
     updateStateVector(rstate, q);
 }   
 

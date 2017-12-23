@@ -265,7 +265,7 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 3;
+	int mode = 2;
 	switch (mode) {
 	case 1: {
 		StateValidityChecker svc;
@@ -289,7 +289,7 @@ int main(int argn, char ** args) {
 		ofstream GD;
 		double d;
 		if (env == 1) {
-			GD.open("./matlab/Benchmark_" + plannerName + "_w_4.txt", ios::app);
+			GD.open("./matlab/lc_analysis/Benchmark_" + plannerName + "_wn_dlc.txt", ios::app);
 			d = 0.8;//1.6;
 		}
 		else if (env == 2) {
@@ -297,8 +297,8 @@ int main(int argn, char ** args) {
 			d = 0.8;
 		}
 
-		for (int k = 0; k < 150; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, d, 4); 
+		for (int k = 0; k < 100; k++) {
+			Plan.plan(c_start, c_goal, runtime, ptype, d, 2); 
 
 			// Extract from perf file
 			ifstream FromFile;
@@ -315,18 +315,18 @@ int main(int argn, char ** args) {
 	case 3 : { // Benchmark maximum step size
 		ofstream GD;
 		if (env == 1)
-			GD.open("./matlab/Benchmark_" + plannerName + "_wo_rB.txt", ios::app);
+			GD.open("./matlab/Benchmark_" + plannerName + "_w_knn30_r4_rB.txt", ios::app);
 		else if (env == 2)
 			GD.open("./matlab/Benchmark_" + plannerName + "_envII_w_rB.txt", ios::app);
 
-		for (int k = 0; k < 500; k++) {
+		for (int k = 0; k < 100; k++) {
 
-			for (int j = 0; j < 12; j++) {
+			for (int j = 0; j < 10; j++) {
 				double maxStep = 0.2 + 0.2*j;
 
 				cout << "** Running GD iteration " << k << " with maximum step: " << maxStep << " **" << endl;
 
-				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
+				Plan.plan(c_start, c_goal, runtime, ptype, maxStep,4);
 
 				GD << maxStep << "\t";
 

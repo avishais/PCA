@@ -207,6 +207,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
         // Check motion
         clock_t sT = clock();
         local_connection_count++;
+        d_lc += si_->distance(nmotion->state, dstate); // *****
         bool validMotion = checkMotionRBS(nmotion->state, dstate);
         local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
 
@@ -258,10 +259,12 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
             solution = solution->parent;
         }
 
-        save2file(mpath);
-
+        final_solved = !approximate;
         nodes_in_path = mpath.size();
         nodes_in_trees = nn_->size();
+        LogPerf2file(); // Log planning parameters
+
+        save2file(mpath);
 
         /* set the solution path */
         PathGeometric *path = new PathGeometric(si_);
@@ -276,16 +279,16 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
     	// Report computation time
     	total_runtime = double(clock() - startTime) / CLOCKS_PER_SEC;
 
-    	nodes_in_trees = nn_->size();
+        nodes_in_trees = nn_->size();
+        
+        final_solved = false;
+        LogPerf2file(); // Log planning parameters        
     }
 
     si_->freeState(xstate);
     if (rmotion->state)
         si_->freeState(rmotion->state);
     delete rmotion;
-
-	final_solved = !approximate ? solved : false;
-    LogPerf2file(); // Log planning parameters
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
 
@@ -331,8 +334,10 @@ void ompl::geometric::RRT::samplePCA(Motion *nmotion, base::State *rstate) {
     retrieveStateVector(nmotion->state, q);
     NHBR.push_back(q);
 
+    retrieveStateVector(rstate, q);
+
     // Find new sample using pca
-    q = sample_pca(NHBR, knn_);
+    q = sample_pca(NHBR, q, knn_);
     updateStateVector(rstate, q);
 }    
 

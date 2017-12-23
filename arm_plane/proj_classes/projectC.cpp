@@ -70,6 +70,8 @@ bool projectC::project(State &q_init) {
     clock_t begin = clock();
     
     column_vector starting_point(n_);
+
+    State q_prev = q_init;
     
     for (int i = 0; i < n_; i++) 
         starting_point(i) = q_init[i];
@@ -108,7 +110,9 @@ bool projectC::project(State &q_init) {
     if (fabs(height(q_init)-height_d) > 3 || fabs(pitch(q_init)-pitch_d) > 0.1 || !check_angle_limits(q_init) || !EE_bounds(q_init)) 
         result = false;
 
-	IK_time += double(clock() - begin) / CLOCKS_PER_SEC;
+    IK_time += double(clock() - begin) / CLOCKS_PER_SEC;
+    
+    proj_dist += norm(q_prev, q_init);
 
     return result;
 }
@@ -203,4 +207,13 @@ void projectC::printCVector(column_vector p) {
 	for (unsigned i = 0; i < p.size(); i++)
 		cout << p(i) << " ";
 	cout << "}" << endl;
+}
+
+double projectC::norm(State q1, State q2) {
+
+    double d = 0;
+	for (int i = 0; i < q1.size(); i++)
+        d += (q1[i] - q2[i]) * (q1[i] - q2[i]);
+    
+    return sqrt(d);
 }

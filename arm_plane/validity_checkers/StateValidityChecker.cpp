@@ -278,7 +278,7 @@ bool StateValidityChecker::reconstructRBS(State q1, State q2, Matrix &M, int ite
 
 // ------------------------------------ PCA functions ----------------------------------------------------
 
-State StateValidityChecker::sample_pca(Matrix nhbr, int dim_pca) {
+State StateValidityChecker::sample_pca(Matrix nhbr, State q_rand, int dim_pca) {
 
 	int num_records = nhbr.size();	
 	set_num_records(num_records);
@@ -290,28 +290,33 @@ State StateValidityChecker::sample_pca(Matrix nhbr, int dim_pca) {
 
 	// dim_pca = get_dim_pca();
 	
-	State q_pca(dim_pca);
-	for (int i = 0; i < dim_pca; i++)
-		q_pca[i] = -PI + (double)std::rand()/RAND_MAX * 2*PI;
+	// State q_pca(dim_pca);
+	// for (int i = 0; i < dim_pca; i++)
+	// 	q_pca[i] = q_rand[i];
+		// q_pca[i] = -PI + (double)std::rand()/RAND_MAX * 2*PI;
 
-	State q = reconstruct_pca(q_pca);
+	State q = reconstruct_pca(q_rand, dim_pca);
 
 	return q;
 }
 
-State StateValidityChecker::reconstruct_pca(State q) {
+State StateValidityChecker::reconstruct_pca(State q, int dim_pca) {
 	arma::Mat<double> E(n, q.size());
 	arma::Col<double> qp(q.size());
 	arma::Col<double> qm(n);
 	State eigv(n), qs(n), q_mean(n);
 
-	// cout << "eigv: \n";
+	State evl(n, 1);
+	for (int i = dim_pca; i < evl.size(); i++)
+		evl[i] = (double)std::rand()/RAND_MAX * 0.3;
+
+	// printVector(evl);
+
 	for (int i = 0; i < q.size(); i++) {
 		eigv = get_eigenvector(i);
-		// printVector(eigv);
 		q_mean = get_mean_values();
 		for (int j = 0; j < eigv.size(); j++) {
-			E(j,i) = eigv[j];
+			E(j,i) = eigv[j] * evl[i];
 			qm(j) = q_mean[j];
 		}
 		qp(i) = q[i];
@@ -346,6 +351,10 @@ int StateValidityChecker::get_dim_pca() {
 
 	return i;
 }
+
+// void StateValidityChecker::eig_gain(State eig, i) {
+
+// }
 	
 
 // ------------------------------------ MISC functions ---------------------------------------------------
@@ -422,6 +431,8 @@ void StateValidityChecker::LogPerf2file() {
 	myfile << sampling_counter[1] << endl;
 	myfile << get_pca_count() << endl;
 	myfile << get_pca_time() << endl;
+	myfile << d_lc / local_connection_count << endl;
+	myfile << proj_dist/IK_counter << endl;
 
 	myfile.close();
 }

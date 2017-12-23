@@ -28,12 +28,21 @@ mpr = mean(pr);
 % coeff2 = U(:,iv);
 
 %%
-ps2d = rand(1,2) * 2 - 1;
+ps2d = rand(1,3) * 2 - 1;
 % ps2d = ps2d * 5;
 
-ps = coeff(:,1:2) * ps2d' + mpr';
+%%
+L = repmat(latent', 3, 1);
 
-[norm(ps2d) norm(ps)]
+M = coeff.*L;
+ps2dl = ps2d;
+
+% M = coeff(:,1:2);
+% ps2dl = ps2d(1:2);
+
+ps = M * ps2dl' + mpr';
+
+[norm(ps2dl) norm(ps)]
 
 %
 figure(1)
