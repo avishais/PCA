@@ -40,9 +40,9 @@
 #include <limits>
 #include <cassert>
 
-#include "SBL_GD.h"
+#include "SBL.h"
 
-ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si, double maxStep, int env) : base::Planner(si, "SBL"), StateValidityChecker(si, env)
+ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si, double maxStep, int env, int knn) : base::Planner(si, "SBL"), StateValidityChecker(si, env)
 {
 	specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 	maxDistance_ = 0.0;
@@ -53,6 +53,7 @@ ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si, double maxStep, i
 	defaultSettings();
 
 	Range = maxStep;
+	knn_ = knn;	
 }
 
 ompl::geometric::SBL::~SBL()
@@ -166,8 +167,12 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
 		Motion *existing = selectMotion(tree);
 		assert(existing);
-		if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
-			continue;
+		
+		if (usePCA && tree.size > 3) 
+			samplePCA(tree, existing, xstate);
+		else
+			if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
+				continue;
 
 		clock_t sT = clock();
 		if (!IKproject(xstate, true)) {
@@ -195,8 +200,6 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
 			pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
 			solved = true;
-			final_solved = true;
-			LogPerf2file(); // Log planning parameters
 			break;
 		}
 	}
@@ -212,7 +215,6 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 		final_solved = false;
 		LogPerf2file(); // Log planning parameters
 	}
-
 
 	si_->freeState(xstate);
 
@@ -274,10 +276,13 @@ bool ompl::geometric::SBL::checkSolution(bool start, TreeData &tree, TreeData &o
 				if (!start)
 					mpath1.swap(mpath2);
 
-				save2file(mpath1, mpath2);
 				cout << "Path from tree 1 size: " << mpath1.size() << ", path from tree 2 size: " << mpath2.size() << endl;
 				nodes_in_path = mpath1.size() + mpath2.size();
 				nodes_in_trees = tree.size + otherTree.size;
+				final_solved = true;
+				LogPerf2file(); // Log planning parameters
+
+				save2file(mpath1, mpath2);
 
 				for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
 					solution.push_back(mpath1[i]);
@@ -451,6 +456,65 @@ void ompl::geometric::SBL::getPlannerData(base::PlannerData &data) const
 
 	data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }
+
+void ompl::geometric::SBL::samplePCA(TreeData &tree, Motion *nmotion, base::State *rstate) {
+
+	Grid<MotionInfo>::CellArray nhbr;
+	// Grid<MotionInfo>::CellArray nhbr;
+	State q(get_n());
+	
+	Grid<MotionInfo>::Coord coord;
+	projectionEvaluator_->computeCoordinates(nmotion->state, coord);
+	const Grid<MotionInfo>::Cell* cell = tree.grid.getCell(coord);
+
+	// Find up to knn nearest neighbors to nmotion in the tree
+	tree.grid.neighbors(cell, nhbr);
+
+	tree.grid.printCoord(coord);
+	cout << tree.grid.getDimension() << " " << nhbr.size() << endl;
+	cin.ignore();
+
+	//int k = min(80, nhbr.size());
+    // tree->nearestK(nmotion, min(80, tree.size()), nhbr); //
+    // //nn_->nearestR(nmotion, nn_radius_, nhbr);
+
+    // // Create vector<vector> db for neighbors
+    // Matrix NHBR;
+    // for (int i = 0; i < nhbr.size(); i++) {
+    //     retrieveStateVector(nhbr[i]->state, q);
+    //     NHBR.push_back(q);
+    // }
+    // retrieveStateVector(nmotion->state, q);
+    // NHBR.push_back(q);
+
+    // // Find new sample using pca
+    // q = sample_pca(NHBR, knn_);
+    // updateStateVector(rstate, q);
+}  
+
+// Matrix ompl::geometric::SBL::neighbors(TreeData &tree, Coord &coord, int k) {
+	
+// 	Matrix list;
+// 	list.reserve(k);
+ 
+//     for (int i = get_n() - 1; i >= 0; --i) {
+//         coord[i]--;
+ 
+//         auto pos = tree.hash_.find(&coord);
+//         Cell *cell = (pos != tree.hash_.end()) ? pos->second : nullptr;
+ 
+//         if (cell)
+//             list.push_back(cell);
+//         coord[i] += 2;
+ 
+//         pos = tree.hash_.find(&coord);
+//         cell = (pos != tree.hash_.end()) ? pos->second : nullptr;
+ 
+//         if (cell)
+//             list.push_back(cell);
+//         coord[i]--;
+//     }
+// }
 
 
 void ompl::geometric::SBL::save2file(vector<Motion*> mpath1, vector<Motion*> mpath2) {

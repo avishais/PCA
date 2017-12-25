@@ -202,7 +202,6 @@ protected:
 
 	/** \brief Sample in PCA lower space */
 	void samplePCA(Motion *, base::State *);
-		
 };
 
 }

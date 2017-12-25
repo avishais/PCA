@@ -42,7 +42,7 @@
 #include "ompl/datastructures/NearestNeighbors.h"
 #include <vector>
 
-#include "../validity_checkers/StateValidityCheckerGD.h"
+#include "../validity_checkers/StateValidityChecker.h"
 
 namespace ompl
 {
@@ -82,7 +82,7 @@ class LazyRRT : public base::Planner, StateValidityChecker
 public:
 
 	/** \brief Constructor */
-	LazyRRT(const base::SpaceInformationPtr &si, double = 2, int = 1);
+	LazyRRT(const base::SpaceInformationPtr &si, double = 2, int = 1, int = 20);
 
 	virtual ~LazyRRT();
 
@@ -141,6 +141,15 @@ public:
 
 	// Maximum local connection distance
 	double Range;
+
+
+	// k number of nearest neighbors to use for PCA
+	int knn_;
+
+	double nn_radius_;
+
+	// Flag to whether use PCA
+	bool usePCA = true;
 
 protected:
 
@@ -209,6 +218,8 @@ protected:
     /** \brief Save solution path to two files */
 	void save2file(vector<Motion*>);
 
+	/** \brief Sample in PCA lower space */
+	void samplePCA(Motion *, base::State *);
 };
 
 }

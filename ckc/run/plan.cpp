@@ -55,21 +55,16 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
             return std::make_shared<og::RRT>(si, maxStep, env, knn_);
             break;
         }
-        // case PLANNER_LAZYRRT:
-        // {
-        //     return std::make_shared<og::LazyRRT>(si, maxStep, env);
-        //     break;
-        // }
-        // case PLANNER_PRM:
-        // {
-        //     return std::make_shared<og::PRM>(si, env);
-        //     break;
-        // }
-        // case PLANNER_SBL:
-        // {
-        //     return std::make_shared<og::SBL>(si, maxStep, env);
-        //     break;
-        // }
+        case PLANNER_LAZYRRT:
+        {
+            return std::make_shared<og::LazyRRT>(si, maxStep, env, knn_);
+            break;
+        }
+        case PLANNER_SBL:
+        {
+            return std::make_shared<og::SBL>(si, maxStep, env, knn_);
+            break;
+        }
         default:
         {
             OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
@@ -242,10 +237,6 @@ int main(int argn, char ** args) {
 			plannerName = "LazyRRT";
 			break;
 		case 4 :
-			ptype = PLANNER_PRM;
-			plannerName = "PRM";
-			break;
-		case 5 :
 			ptype = PLANNER_SBL;
 			plannerName = "SBL";
 			break;
@@ -276,10 +267,10 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 2;
+	int mode = 1;
 	switch (mode) {
 	case 1: {
-		Plan.plan(c_start, c_goal, runtime, ptype, 2.8, 12);
+		Plan.plan(c_start, c_goal, runtime, ptype, 2.8, 6);
 
 		break;
 	}
@@ -287,7 +278,7 @@ int main(int argn, char ** args) {
 		ofstream GD;
 		double d;
 		if (env == 1) {
-			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_8.txt", ios::app);
+			GD.open("./matlab/Benchmark_" + plannerName + "_envI_wo.txt", ios::app);
 			d = 2.8;
 		}
 		else if (env == 2) {
@@ -296,7 +287,7 @@ int main(int argn, char ** args) {
 		}
 
 		for (int k = 0; k < 500; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, d, 12); 
+			Plan.plan(c_start, c_goal, runtime, ptype, d, 11); 
 
 			// Extract from perf file
 			ifstream FromFile;

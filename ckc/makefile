@@ -27,7 +27,7 @@ CPPPQP = ${INC_VALIDITY}collisionDetection.cpp ${INC_VALIDITY}model.cpp
 
 CPP = ${INC_CLASSES}kdl_class.cpp ${INC_VALIDITY}StateValidityChecker.cpp
 
-CPP_P = ${INC_RUN}plan.cpp ${INC_PLANNERS}CBiRRT.cpp ${INC_PLANNERS}RRT.cpp #${INC_PLANNERS}LazyRRT.cpp ${INC_PLANNERS}SBL.cpp ${INC_PLANNERS}PRM.cpp 
+CPP_P = ${INC_RUN}plan.cpp ${INC_PLANNERS}CBiRRT.cpp ${INC_PLANNERS}RRT.cpp ${INC_PLANNERS}LazyRRT.cpp ${INC_PLANNERS}SBL.cpp 
 
 
 all:

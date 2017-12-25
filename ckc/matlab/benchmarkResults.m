@@ -16,8 +16,8 @@ clc
 
 d = 2.8;
 %%
-planners = {'BiRRT','RRT'};
-plannerType = planners{2};
+planners = {'BiRRT','RRT','LazyRRT'};
+plannerType = planners{3};
 switch plannerType
     case 'BiRRT'
         D{1} = load('Benchmark_CBiRRT_envI_w_8.txt'); 
@@ -29,6 +29,14 @@ switch plannerType
     case 'RRT'
         D{1} = load('Benchmark_RRT_envI_w_6.txt'); 
         D{2} = load('Benchmark_RRT_envI_wo.txt'); 
+        fprintf('Failures: \t%.1f, %.1f \n', 100-sum(D{1}(:,1))/size(D{1},1)*100, 100-sum(D{2}(:,1))/size(D{2},1)*100);
+        D{1} = [d*ones(size(D{1},1),1) D{1}];
+        D{2} = [d*ones(size(D{2},1),1) D{2}];
+        D{1} = D{1}(D{1}(:,2)==1,:); 
+        D{2} = D{2}(D{2}(:,2)==1,:); 
+    case 'LazyRRT'
+        D{1} = load('Benchmark_LazyRRT_envI_w.txt'); 
+        D{2} = load('Benchmark_LazyRRT_envI_wo.txt'); 
         fprintf('Failures: \t%.1f, %.1f \n', 100-sum(D{1}(:,1))/size(D{1},1)*100, 100-sum(D{2}(:,1))/size(D{2},1)*100);
         D{1} = [d*ones(size(D{1},1),1) D{1}];
         D{2} = [d*ones(size(D{2},1),1) D{2}];
@@ -49,7 +57,7 @@ for k = 1:size(D,2)
     tmin(k) = F(4,k);
 end
 
-clc
+% clc
 disp('-----------------------------------');
 fprintf('         \t\tw/\tw/o\n');
 fprintf('Queries: \t\t%d\t%d\n', size(D{1},1), size(D{2},1));

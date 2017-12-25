@@ -39,9 +39,9 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include <cassert>
 
-#include "LazyRRT_GD.h"
+#include "LazyRRT.h"
 
-ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si, double maxStep, int env) : base::Planner(si, "LazyRRT"), StateValidityChecker(si, env)
+ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si, double maxStep, int env, int knn) : base::Planner(si, "LazyRRT"), StateValidityChecker(si, env)
 {
     specs_.directed = true;
     goalBias_ = 0.05;
@@ -54,6 +54,7 @@ ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si, double ma
     Planner::declareParam<double>("goal_bias", this, &LazyRRT::setGoalBias, &LazyRRT::getGoalBias, "0.:.05:1.");
 
     Range = maxStep;
+    knn_ = knn;
 }
 
 ompl::geometric::LazyRRT::~LazyRRT()
@@ -157,6 +158,10 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
         /* find closest state in the tree */
         Motion *nmotion = nn_->nearest(rmotion);
         assert(nmotion != rmotion);
+
+        if (usePCA && !gg && nn_->size() > 3) 
+            samplePCA(nmotion, rstate);
+
         base::State *dstate = rstate;
 
         /* find state to add */
@@ -170,10 +175,16 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
         }
 
         // If not goal, then must project
+        clock_t sT = clock();        
         if (!(gg && reach)) {
         	// Project dstate (which currently is not on the manifold)
-        	if (!IKproject(dstate)) // Collision check is done inside the projection
-        		continue;
+        	if (!IKproject(dstate)) {// Collision check is done inside the projection
+                sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+				sampling_counter[1]++;
+                continue;
+            }
+            sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+			sampling_counter[0]++;
 
         	retrieveStateVector(dstate, q);
         	updateStateVector(xstate, q);
@@ -235,10 +246,13 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
             	total_runtime = double(clock() - startTime) / CLOCKS_PER_SEC;
             	cout << "Solved in " << total_runtime << "s." << endl;
 
-            	save2file(mpath);
-
             	nodes_in_path = mpath.size();
-            	nodes_in_trees = nn_->size();
+                nodes_in_trees = nn_->size();
+                
+                final_solved = solutionFound;
+                LogPerf2file(); // Log planning parameters
+
+                save2file(mpath);
 
                 // set the solution path
                 PathGeometric *path = new PathGeometric(si_);
@@ -255,15 +269,15 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
     	// Report computation time
     	total_runtime = double(clock() - startTime) / CLOCKS_PER_SEC;
 
-    	nodes_in_trees = nn_->size();
+        nodes_in_trees = nn_->size();
+        
+        final_solved = solutionFound;
+        LogPerf2file(); // Log planning parameters
     }
 
     si_->freeState(xstate);
     si_->freeState(rstate);
     delete rmotion;
-
-    final_solved = solutionFound;
-    LogPerf2file(); // Log planning parameters
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
 
@@ -320,6 +334,29 @@ void ompl::geometric::LazyRRT::getPlannerData(base::PlannerData &data) const
         data.tagState(motions[i]->state, motions[i]->valid ? 1 : 0);
     }
 }
+
+void ompl::geometric::LazyRRT::samplePCA(Motion *nmotion, base::State *rstate) {
+
+    std::vector<Motion*> nhbr;
+    State q(get_n());
+
+    // Find up to knn nearest neighbors to nmotion in the tree
+    nn_->nearestK(nmotion, min(20, nn_->size()), nhbr); //
+    //nn_->nearestR(nmotion, nn_radius_, nhbr);
+
+    // Create vector<vector> db for neighbors
+    Matrix NHBR;
+    for (int i = 0; i < nhbr.size(); i++) {
+        retrieveStateVector(nhbr[i]->state, q);
+        NHBR.push_back(q);
+    }
+    retrieveStateVector(nmotion->state, q);
+    NHBR.push_back(q);
+
+    // Find new sample using pca
+    q = sample_pca(NHBR, knn_);
+    updateStateVector(rstate, q);
+}   
 
 void ompl::geometric::LazyRRT::save2file(vector<Motion*> mpath) {
 

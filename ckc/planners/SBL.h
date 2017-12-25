@@ -43,7 +43,7 @@
 #include "ompl/datastructures/PDF.h"
 #include <vector>
 
-#include "../validity_checkers/StateValidityCheckerGD.h"
+#include "../validity_checkers/StateValidityChecker.h"
 
 namespace ompl
 {
@@ -89,7 +89,7 @@ class SBL : public base::Planner, public StateValidityChecker
 public:
 
 	/** \brief The constructor needs the instance of the space information */
-	SBL(const base::SpaceInformationPtr &si, double = 2, int = 1);
+	SBL(const base::SpaceInformationPtr &si, double = 2, int = 1, int = 20);
 
 	virtual ~SBL();
 
@@ -141,6 +141,14 @@ public:
 
 	// Maximum local connection distance
 	double Range;
+
+		// k number of nearest neighbors to use for PCA
+	int knn_;
+
+	double nn_radius_;
+
+	// Flag to whether use PCA
+	bool usePCA = true;
 
 protected:
 
@@ -284,7 +292,12 @@ protected:
 
     // ***************** My additional functions ************************
     /** \brief Save solution path to two files */
-    void save2file(vector<Motion*>, vector<Motion*>);
+	void save2file(vector<Motion*>, vector<Motion*>);
+	
+	/** \brief Sample in PCA lower space */
+	void samplePCA(TreeData &, Motion *, base::State *);
+
+	//Matrix neighbors(TreeData &, Grid<MotionInfo>::Coord &, int);
 };
 
 }
