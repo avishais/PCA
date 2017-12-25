@@ -23,7 +23,7 @@
 
 #define PI_ 3.1416
 #define ARMS_DISTANCE 518.09
-#define ROD_LENGTH 300
+#define ROD_LENGTH 500
 
 using namespace std;
 using namespace KDL;
@@ -89,10 +89,16 @@ public:
 	/** Random configuration in the ambient space that satisfies joint limits */
 	State rand_q(int);
 
+	/** Returns ABB's link lengths */
+	State get_robots_properties() {
+		State P = {b, l1x, l1y, l1z, l2a, l2b, l3, l4a, l4b, l5, l6a, l6b, l7, lEE};
+		return P;
+	}
+
 	/** Performance parameters */
 	int IK_counter;
 	double IK_time;
-	double proj_dist;
+	double proj_dist;	
 	int get_IK_counter() {
 		return IK_counter;
 	}
@@ -100,7 +106,7 @@ public:
 		return IK_time;
 	}
 
-	bool include_joint_limits = false;
+	bool include_joint_limits = true;
 
 	/** Return transformation matrix of rod end-tip in rod coordinate frame (at the other end-point) */
 	Matrix getQ() {

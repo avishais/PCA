@@ -25,7 +25,7 @@ switch plannerType
         %D = load('Benchmark_RRT_envI_knn.txt');
         %D = load('Benchmark_RRT_envI_minTree.txt');
         %D = load('Benchmark_RRT_envI_nnR.txt');
-        D = load('Benchmark_RRT_dimpca.txt');
+        D = load('Benchmark_RRT_envII_dimpca.txt');
         fprintf('Failures: \t%.1f\n', 100-sum(D(:,2))/size(D,1)*100);
         D = D(D(:,2)==1,:);
         

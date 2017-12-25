@@ -69,7 +69,7 @@ class RRT : public base::Planner, StateValidityChecker
 public:
 
 	/** \brief Constructor */
-	RRT(const base::SpaceInformationPtr &si, double = 2, int = 1, int = 20);
+	RRT(const base::SpaceInformationPtr &si, double = 2, int = 6, int = 20);
 
 	virtual ~RRT();
 
@@ -132,10 +132,12 @@ public:
 	// k number of nearest neighbors to use for PCA
 	int knn_;
 
+	int dim_;
+
 	double nn_radius_;
 
 	// Flag to whether use PCA
-	bool usePCA = false;
+	bool usePCA = true;
 
 protected:
 

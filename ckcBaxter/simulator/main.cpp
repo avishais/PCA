@@ -9,7 +9,7 @@
 #include <vector>
 #include <unistd.h>
 
-#define ROD_LENGTH 300
+#define ROD_LENGTH 500
 
 PQP_Model base, link1, link2, link3, link4, link5, link6, link7, ped;
 Model *base_to_draw, *link1_to_draw, *link2_to_draw, *link3_to_draw, \
@@ -666,10 +666,10 @@ void DisplayCB()
 	MRotX(Mrod,-3.1415926);
 	MxM(Rrod_v, Rrod, Mrod);
 
-	//pm(REE, "REE");
-	//pm(Rrod, "Rrod");
-	//pm(Rrod_v, "Rrod_v");
-	//pv(Trod, "Trod");
+	// pm(REE, "REE");
+	// pv(TEE, "TEE");
+	// pm(Rrod_v, "Rrod_v");
+	// pv(Trod, "Trod");
 
 	int step1 = step-1;
 	for(int i=0;i<RodStates[step1].size();i++){
@@ -1372,7 +1372,7 @@ void execute_path(int k){
 
 		if (step_sim) {
 			std::cout << step << std::endl;
-			std::cout << rot1 << " " << rot2 << " " << rot3 << " " << rot4 << " " << rot5 << " " << rot6 << " " << rot7 << " " << rot12 << " " << rot22 << " " << rot32 << " " << rot42 << " " << rot52 << " " << rot62 << " " << rot72 << " " << std::endl;
+			std::cout << rot1 << ", " << rot2 << ", " << rot3 << ", " << rot4 << ", " << rot5 << ", " << rot6 << ", " << rot7 << ", " << rot12 << ", " << rot22 << ", " << rot32 << ", " << rot42 << ", " << rot52 << ", " << rot62 << ", " << rot72 << ", " << std::endl;
 			std::cin.ignore();
 		}
 	}

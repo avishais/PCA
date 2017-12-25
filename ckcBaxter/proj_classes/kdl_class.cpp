@@ -1,7 +1,7 @@
 #include "kdl_class.h"
 
 // Constructor for the robots
-kdl::kdl() : L(ROD_LENGTH) {
+kdl::kdl() : grasp_pose(true), L(ROD_LENGTH) {
 	b = 0;
 	l1x= 0.024645e3+0.055695e3-0.02e3;
 	l1y=-0.25e3;
@@ -19,31 +19,6 @@ kdl::kdl() : L(ROD_LENGTH) {
 
 	setQ();
 	setP();
-
-	// Joint limits
-	qmin.resize(7);
-	qmax.resize(7);
-	qmin[0] = deg2rad(-141); // S0 - Flip for Arm 2
-	qmax[0] = deg2rad(51);
-	qmin[1] = deg2rad(-123); // S1
-	qmax[1] = deg2rad(60);
-	qmin[2] = deg2rad(-173.5); // E0 - Flip for Arm 2
-	qmax[2] = deg2rad(173.5);
-	qmin[3] = deg2rad(-93); // E1
-	qmax[3] = deg2rad(60);
-	qmin[4] = deg2rad(-175.25); // W0 - Flip for Arm 2
-	qmax[4] = deg2rad(175.25);
-	qmin[5] = deg2rad(-90); // W1
-	qmax[5] = deg2rad(120);
-	qmin[6] = deg2rad(-175.25); // W2 - Flip for Arm 2
-	qmax[6] = deg2rad(175.25);
-
-	
-
-	initMatrix(T_fk, 4, 4);
-
-	initMatrix(T_pose, 4, 4);
-	T_pose = {{-1, 0, 0, 0}, {0, -1, 0, ARMS_DISTANCE}, {0, 0, 1, 0}, {0, 0, 0, 1}};
 
 	// Initiate chain with given rod configuration
 	// Arm 1
@@ -74,12 +49,33 @@ kdl::kdl() : L(ROD_LENGTH) {
 	chain.addSegment(Segment(Joint(Joint::RotY),Frame(Vector(l2a,0.0,-l2b))));
 	chain.addSegment(Segment(Joint(Joint::RotZ),Frame(Vector(0,0.0,0))));
 
+	// Joint limits
+	qmin.resize(7);
+	qmax.resize(7);
+	qmin[0] = deg2rad(-141); // S0 - Flip for Arm 2
+	qmax[0] = deg2rad(51);
+	qmin[1] = deg2rad(-123); // S1
+	qmax[1] = deg2rad(60);
+	qmin[2] = deg2rad(-173.5); // E0 - Flip for Arm 2
+	qmax[2] = deg2rad(173.5);
+	qmin[3] = deg2rad(-93); // E1
+	qmax[3] = deg2rad(60);
+	qmin[4] = deg2rad(-175.25); // W0 - Flip for Arm 2
+	qmax[4] = deg2rad(175.25);
+	qmin[5] = deg2rad(-90); // W1
+	qmax[5] = deg2rad(120);
+	qmin[6] = deg2rad(-175.25); // W2 - Flip for Arm 2
+	qmax[6] = deg2rad(175.25);
+
+	initMatrix(T_fk, 4, 4);
+
+	initMatrix(T_pose, 4, 4);
+	T_pose = {{-1, 0, 0, 0}, {0, -1, 0, ARMS_DISTANCE}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+
 	// Create joint array
 	unsigned int nj = 14; // Number of joints for two ABB arms
 	jointpositions = JntArray(nj);
 	initVector(q_solution, nj);
-
-	grasp_pose = true;
 
 	cout << "Initiated chain with " << nj << " joints.\n";
 }
@@ -89,8 +85,6 @@ kdl::kdl() : L(ROD_LENGTH) {
 bool kdl::GD(State q_init_flip) {
 
 	bool valid = true;
-
-	printVector(q_init_flip);
 
 	// Flip robot two vector
 	State q_init(q_init_flip.size());
@@ -105,16 +99,12 @@ bool kdl::GD(State q_init_flip) {
 	IK_counter++;
 	clock_t begin = clock();
 
+
 	for (int i = 0; i < 3; i++) {
 		cartposIK.p(i) = T_pose[i][3];
 		for (int j = 0; j < 3; j++)
 			cartposIK.M(i,j) = T_pose[i][j];
 	}
-
-	cout << "q_init: \n"; printVector(q_init);
-	cout << "Tpose: \n"; printMatrix(T_pose);
-	cout << chain.getNrOfJoints() << endl;
-	
 
 	// KDL
 	ChainFkSolverPos_recursive fksolver = ChainFkSolverPos_recursive(chain); 	// Create solver based on kinematic chain
@@ -128,17 +118,9 @@ bool kdl::GD(State q_init_flip) {
 	for (int i = 0; i < chain.getNrOfJoints(); i++)
 		qInit(i) = q_init[i];
 
-	for (int i = 0; i < 14; i++)
-		cout << qInit(i) << " ";
-	cout << endl;
-
 	//Set destination frame
 	KDL::Frame F_dest = cartposIK;//Frame(Vector(1.0, 1.0, 0.0));
 	int ret = iksolver.CartToJnt(qInit, F_dest, qKDL);
-
-	for (int i = 0; i < 14; i++)
-		cout << qKDL(i) << " ";
-	cout << endl;
 
 	bool result = false;
 	if (ret >= 0) {
@@ -163,16 +145,12 @@ bool kdl::GD(State q_init_flip) {
 			q_solution[j] = q[i];
 		q_solution[7] = -q_solution[7];
 
-		printVector(q_solution);
-		cout << "j: " << check_angle_limits(q_solution) << endl;
-		log_q(q_solution);
-
 		if (include_joint_limits && !check_angle_limits(q_solution))
 			result = false;
 		else
 			result = true;
 
-		//proj_dist += norm(q_solution, q_init_flip);
+		proj_dist += norm(q_solution, q_init_flip);
 	}
 
 	clock_t end = clock();
@@ -185,16 +163,15 @@ bool kdl::check_angle_limits(State q) {
 
 	// Arm 1
 	for (int i = 0; i < 7; i++)
-		if (q[i] < qmin[i] || q[i] > qmax[i]) 
+		if (q[i] < qmin[i] || q[i] > qmax[i])
 			return false;
 
 	// Arm 2
 	if (q[7] < -qmax[0] || q[7] > -qmin[0])
 		return false;
 	for (int i = 8; i < q.size(); i++)
-		if (q[i] < qmin[i-7] || q[i] > qmax[i-7]) 
+		if (q[i] < qmin[i-7] || q[i] > qmax[i-7])
 			return false;
-
 	return true;
 }
 
@@ -283,7 +260,7 @@ void kdl::clearMatrix(Matrix &M) {
 
 void kdl::log_q(State q) {
 	std::ofstream myfile;
-	myfile.open("../paths/path.txt");
+	myfile.open("./paths/path.txt");
 
 	myfile << 1 << endl;
 

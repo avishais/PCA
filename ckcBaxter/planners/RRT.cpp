@@ -41,7 +41,7 @@
 
 #include "RRT.h"
 
-ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, double maxStep, int env, int knn) : base::Planner(si, "RRT"), StateValidityChecker(si)
+ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, double maxStep, int dim, int knn) : base::Planner(si, "RRT"), StateValidityChecker(si)
 {
     specs_.approximateSolutions = true;
     specs_.directed = true;
@@ -57,6 +57,7 @@ ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, double maxStep, i
 
     Range = maxStep;
     knn_ = knn;
+    dim_ = dim;
     //nn_radius_ = nn_radius;
 
     cout << "*** Planning with: d = " << Range << ", and dim_pca = " << knn << " ***" << endl;    
@@ -148,13 +149,6 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
     PlanDistance = si_->distance(start_node, rstate);
     std::vector<Motion*> nhbr;
 
-    cout << "n: " << n << endl;
-    printStateVector(start_node);
-    cout << IKproject(start_node, false) << endl;
-    printStateVector(start_node);
-    exit(0);
-    
-
     while (ptc == false)
     {
 
@@ -213,8 +207,6 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
         d_lc += si_->distance(nmotion->state, dstate); // *****
         bool validMotion = checkMotionRBS(nmotion->state, dstate);
         local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
-
-        cout << validMotion << endl;
 
         if (validMotion)
         {
@@ -296,6 +288,8 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
     delete rmotion;
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
+    
+    solved = final_solved;
 
     return base::PlannerStatus(solved, approximate);
 }
@@ -323,11 +317,13 @@ void ompl::geometric::RRT::getPlannerData(base::PlannerData &data) const
 
 void ompl::geometric::RRT::samplePCA(Motion *nmotion, base::State *rstate) {
 
+    // cout << knn_ << " " << dim_ << endl;
+
     std::vector<Motion*> nhbr;
     State q(get_n());
 
     // Find up to knn nearest neighbors to nmotion in the tree
-    nn_->nearestK(nmotion, min(30, (int)nn_->size()), nhbr); //
+    nn_->nearestK(nmotion, min(knn_, (int)nn_->size()), nhbr); //
     //nn_->nearestR(nmotion, nn_radius_, nhbr);
 
     // Create vector<vector> db for neighbors
@@ -342,7 +338,7 @@ void ompl::geometric::RRT::samplePCA(Motion *nmotion, base::State *rstate) {
     //retrieveStateVector(rstate, q);
 
     // Find new sample using pca
-    q = sample_pca(NHBR, knn_);
+    q = sample_pca(NHBR, dim_);
     updateStateVector(rstate, q);
 }    
 

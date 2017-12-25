@@ -14,10 +14,9 @@ switch plannerType
         D = load('Benchmark_CBiRRT_rB.txt');
     case 'RRT'
         D{1} = load('Benchmark_RRT_wo_rB.txt');
-        D{2} = load('Benchmark_RRT_w_knn30_r3_rB.txt');
+        D{2} = load('Benchmark_RRT_wo_rB.txt');
         fprintf('Failures: \t%.1f %% \n', 100-sum(D{1}(:,2))/size(D{1},1)*100);
         D{1} = D{1}(D{1}(:,2)==1,:);
-        D{1} = D{1}(D{1}(:,1)<=2.4, :);
         D{2} = D{2}(D{2}(:,2)==1,:);
 end
 

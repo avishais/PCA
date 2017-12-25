@@ -47,12 +47,12 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
     {
         case PLANNER_BIRRT:
         {
-            return std::make_shared<og::CBiRRT>(si, maxStep, env, knn_);
+            return std::make_shared<og::CBiRRT>(si, maxStep, dim_, knn_);
             break;
         }
         case PLANNER_RRT:
         {
-            return std::make_shared<og::RRT>(si, maxStep, env, knn_);
+            return std::make_shared<og::RRT>(si, maxStep, dim_, knn_);
             break;
         }
         // case PLANNER_LAZYRRT:
@@ -79,7 +79,7 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
     }
 }
 
-void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype, double max_step, int knn) {
+void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype, double max_step, int dim, int knn) {
 
 	// construct the state space we are planning inz
 	ob::StateSpacePtr Q(new ob::RealVectorStateSpace(14)); // Angles of Robot 1 & 2 - R^14
@@ -151,6 +151,7 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 
 	maxStep = max_step;
 	knn_ = knn;
+	dim_ = dim;
 	// create a planner for the defined space
 	// To add a planner, the #include library must be added above
 	ob::PlannerPtr planner = allocatePlanner(si, ptype);
@@ -174,8 +175,8 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 	// attempt to solve the problem within one second of planning time
 	clock_t begin = clock();
 	ob::PlannerStatus solved = planner->solve(runtime);
-	clock_t end = clock();
-	cout << "Runtime: " << double(end - begin) / CLOCKS_PER_SEC << endl;
+	total_runtime =  double(clock() - begin) / CLOCKS_PER_SEC;
+	cout << "Runtime: " << total_runtime << endl;
 
 	if (solved) {
 		// get the goal representation from the problem definition (not the same as the goal state)
@@ -275,28 +276,25 @@ int main(int argn, char ** args) {
 		Plan.set_environment(1);
 	}
 	else if (env == 2) {
-		c_start = {-0.570546, 0.0619954, 1.50819, -1.1719, 1.64543, -1.39818, -0.358728};
-		c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096}; 
+		c_start = {-1.09373, -1.68292, 0.99801, -1.48912, -1.01775, -0.431006, 2.47099, -0.101416, -0.33912, -2.96362, 0.10259, -1.87046, 0.665993, -2.84012 };
+		c_goal = {0.589347, -1.08461, 0.399868, -0.915582, 1.23539, 1.86865, -0.714677, 0.271736, -0.267008, -1.42245, 0.24666, 0.16777, 2.04954, -0.749441}; 
 		Plan.set_environment(2);
 	}
 
-	int mode = 1;
+	int mode = 4;
 	switch (mode) {
 	case 1: {
-		StateValidityChecker svc;
-		svc.initiate_log_parameters();
 
-		State q(14,0);
-		cout << svc.IKproject(q, false) << endl;
-		
+		// StateValidityChecker svc;
+		// svc.initiate_log_parameters();
 
 		// while (1) {
-		// 	//c_start = svc.sample_q();		
+		// 	c_start = svc.sample_q();		
 		// 	c_goal = svc.sample_q();
 
-		//	Plan.plan(c_start, c_goal, runtime, ptype, 1.5, 7);
+			Plan.plan(c_start, c_goal, runtime, ptype, 1.5, 6, 25);
 
-		// 	if (Plan.solved_bool)
+		// 	if (Plan.solved_bool && Plan.total_runtime > 1)
 		// 		break;
 		// }
 
@@ -306,16 +304,16 @@ int main(int argn, char ** args) {
 		ofstream GD;
 		double d;
 		if (env == 1) {
-			GD.open("./matlab/lc_analysis/Benchmark_" + plannerName + "_wn_dlc.txt", ios::app);
-			d = 0.8;//1.6;
+			GD.open("./matlab/Benchmark_" + plannerName + "_wo.txt", ios::app);
+			d = 1.0;//1.6;
 		}
 		else if (env == 2) {
 			GD.open("./matlab/Benchmark_" + plannerName + "_envII_w.txt", ios::app);
-			d = 0.8;
+			d = 1.5;
 		}
 
-		for (int k = 0; k < 100; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, d, 2); 
+		for (int k = 0; k < 200; k++) {
+			Plan.plan(c_start, c_goal, runtime, ptype, d, 12, 60); 
 
 			// Extract from perf file
 			ifstream FromFile;
@@ -332,7 +330,7 @@ int main(int argn, char ** args) {
 	case 3 : { // Benchmark maximum step size
 		ofstream GD;
 		if (env == 1)
-			GD.open("./matlab/Benchmark_" + plannerName + "_w_knn30_r4_rB.txt", ios::app);
+			GD.open("./matlab/Benchmark_" + plannerName + "_wo_rB.txt", ios::app);
 		else if (env == 2)
 			GD.open("./matlab/Benchmark_" + plannerName + "_envII_w_rB.txt", ios::app);
 
@@ -363,31 +361,35 @@ int main(int argn, char ** args) {
 	case 4 : { // Benchmark min tree size
 		ofstream GD;
 		if (env == 1)
-			GD.open("./matlab/Benchmark_" + plannerName + "_dimpca.txt", ios::app);
+			GD.open("./matlab/Benchmark_" + plannerName + "_dimpca_knn_2.txt", ios::app);
 		else if (env == 2)
-			GD.open("./matlab/Benchmark_" + plannerName + "_envII_knn.txt", ios::app);
+			GD.open("./matlab/Benchmark_" + plannerName + "_envII_dimpca.txt", ios::app);
 
 		for (int k = 0; k < 2000; k++) {
 
-			for (int j = 3; j < 6; j++) {
-				int knn = 0 + 1 * j;
-				double maxStep = 0.8;
+			int knn = 60;
+			// for (int knn = 5; knn <= 120; knn+=15) {
+				for (int j = 1; j < 15; j+=1) {
+					int dim = 0 + 1 * j;
+					double maxStep = 1;
 
-				cout << "** Running GD iteration " << k << " with knn = " << knn << " **" << endl;
+					cout << "** Running GD iteration " << k << " with knn = " << knn << " and dim = " << dim << " **" << endl;
 
-				Plan.plan(c_start, c_goal, runtime, ptype, maxStep, knn);
+					Plan.plan(c_start, c_goal, runtime, ptype, maxStep, dim, knn);
 
-				GD << knn << "\t";
+					//GD << dim << "\t" << knn << "\t";
+					GD << dim << "\t";
 
-				// Extract from perf file
-				ifstream FromFile;
-				FromFile.open("./paths/perf_log.txt");
-				string line;
-				while (getline(FromFile, line))
-					GD << line << "\t";
-				FromFile.close();
-				GD << endl;
-			}
+					// Extract from perf file
+					ifstream FromFile;
+					FromFile.open("./paths/perf_log.txt");
+					string line;
+					while (getline(FromFile, line))
+						GD << line << "\t";
+					FromFile.close();
+					GD << endl;
+				}
+		// }
 		}
 		GD.close();
 		break;

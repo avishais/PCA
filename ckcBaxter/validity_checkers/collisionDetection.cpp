@@ -1,13 +1,13 @@
 #include "collisionDetection.h"
 
-#define CADLINK "../simulator/"
+#define CADLINK "./simulator/"
 
 collisionDetection::collisionDetection() {
 
 	// load the models
 	load_models();
 
-	grasp_pose = false;
+	grasp_pose = true;
 
 }
 
@@ -334,6 +334,7 @@ int collisionDetection::collision_state(Matrix M, State q)
 	// ------------------------------------
 
 	// perform tolerance query
+	
 
 	PQP_REAL tolerance = 5.0;
 	PQP_ToleranceResult res[122];
@@ -450,6 +451,11 @@ int collisionDetection::collision_state(Matrix M, State q)
 	PQP_Tolerance(&res[100],Rrod_v,Trod,&rod,R52,T52,&link52,tolerance);
 	PQP_Tolerance(&res[101],Rrod_v,Trod,&rod,R62,T62,&link62,tolerance);
 	PQP_Tolerance(&res[102],Rrod_v,Trod,&rod,R72,T72,&link72,tolerance);
+
+	// pm(REE, "REE");
+	// pv(TEE, "TEE");
+	// pm(Rrod_v, "Rrod");
+	// pv(Trod, "Trod");
 
 	// rod collisions with EE's with rod not counting buffer from parent EE
 	PQP_Tolerance(&res[103],REE,TEE,&EE,REE2,TEE2,&EE2,tolerance);

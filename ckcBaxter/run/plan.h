@@ -48,7 +48,7 @@ class plan_C
 {
 public:
 
-	void plan(State, State, double, plannerType = PLANNER_BIRRT, double = 2, int = 20);
+	void plan(State, State, double, plannerType = PLANNER_BIRRT, double = 2, int = 6, int = 20);
 
 	// Construct the planner specified by our command line argument.
 	// This helper function is simply a switch statement.
@@ -60,6 +60,7 @@ public:
 
 	double maxStep;
 	int knn_;
+	int dim_;
 
 	//verification_class vfc;
 
