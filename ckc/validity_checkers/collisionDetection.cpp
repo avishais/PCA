@@ -28,24 +28,24 @@ void pv(PQP_REAL V[3], std::string str) {
 }
 
 
-int collisionDetection::collision_state(Matrix M, State q1, State q2)
+int collisionDetection::collision_state(Matrix M, State q)
 // Returns 0 if no collision
 {
 	collisionCheck_counter++;
 	clock_t begin = clock();
 
-	double rot1 = q1[0];
-	double rot2 = q1[1];
-	double rot3 = q1[2];
-	double rot4 = q1[3];
-	double rot5 = q1[4];
-	double rot6 = q1[5];
-	double rot12 = q2[0];
-	double rot22 = q2[1];
-	double rot32 = q2[2];
-	double rot42 = q2[3];
-	double rot52 = q2[4];
-	double rot62 = q2[5];
+	double rot1 = q[0];
+	double rot2 = q[1];
+	double rot3 = q[2];
+	double rot4 = q[3];
+	double rot5 = q[4];
+	double rot6 = q[5];
+	double rot12 = q[6];
+	double rot22 = q[7];
+	double rot32 = q[8];
+	double rot42 = q[9];
+	double rot52 = q[10];
+	double rot62 = q[11];
 
 	collisionDetection::rod.BeginModel();
 
@@ -962,13 +962,15 @@ void collisionDetection::load_models(){
 	}
 }
 
-collisionDetection::collisionDetection(double X, double Y, double Z, double Rot, int env_index) : env(env_index)
+collisionDetection::collisionDetection() : env(1)
 {
 	// load the models
 	load_models();
-	collisionDetection::offsetX = X;
-	collisionDetection::offsetY = Y;
-	collisionDetection::offsetZ = Z;
-	collisionDetection::offsetRot = Rot;
+	collisionDetection::offsetX = ROBOTS_DISTANCE;
+	collisionDetection::offsetY = 0;
+	collisionDetection::offsetZ = 0;
+	collisionDetection::offsetRot = 0;
 
 }
+
+

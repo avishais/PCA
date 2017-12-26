@@ -47,24 +47,19 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
     {
         case PLANNER_BIRRT:
         {
-            return std::make_shared<og::CBiRRT>(si, maxStep, dim_, knn_);
+            return std::make_shared<og::CBiRRT>(si, dimension_, maxStep, dim_, knn_);
             break;
         }
         case PLANNER_RRT:
         {
-            return std::make_shared<og::RRT>(si, maxStep, dim_, knn_);
+            return std::make_shared<og::RRT>(si, dimension_, maxStep, dim_, knn_);
             break;
         }
-        // case PLANNER_LAZYRRT:
-        // {
-        //     return std::make_shared<og::LazyRRT>(si, maxStep, env);
-        //     break;
-        // }
-        // case PLANNER_PRM:
-        // {
-        //     return std::make_shared<og::PRM>(si, env);
-        //     break;
-        // }
+        case PLANNER_LAZYRRT:
+        {
+            return std::make_shared<og::LazyRRT>(si, dimension_, maxStep, dim_, knn_);
+            break;
+        }
         // case PLANNER_SBL:
         // {
         //     return std::make_shared<og::SBL>(si, maxStep, env);
@@ -149,9 +144,12 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 	pdef->setStartAndGoalStates(start, goal);
 	pdef->print();
 
+	// Properties
 	maxStep = max_step;
 	knn_ = knn;
 	dim_ = dim;
+	dimension_ = c_start.size();
+
 	// create a planner for the defined space
 	// To add a planner, the #include library must be added above
 	ob::PlannerPtr planner = allocatePlanner(si, ptype);
@@ -248,10 +246,6 @@ int main(int argn, char ** args) {
 			plannerName = "LazyRRT";
 			break;
 		case 4 :
-			ptype = PLANNER_PRM;
-			plannerName = "PRM";
-			break;
-		case 5 :
 			ptype = PLANNER_SBL;
 			plannerName = "SBL";
 			break;
@@ -281,7 +275,7 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 4;
+	int mode = 3;
 	switch (mode) {
 	case 1: {
 
@@ -292,7 +286,7 @@ int main(int argn, char ** args) {
 		// 	c_start = svc.sample_q();		
 		// 	c_goal = svc.sample_q();
 
-			Plan.plan(c_start, c_goal, runtime, ptype, 1.5, 6, 25);
+			Plan.plan(c_start, c_goal, runtime, ptype, 1.5, -1, 25);
 
 		// 	if (Plan.solved_bool && Plan.total_runtime > 1)
 		// 		break;
@@ -341,7 +335,7 @@ int main(int argn, char ** args) {
 
 				cout << "** Running GD iteration " << k << " with maximum step: " << maxStep << " **" << endl;
 
-				Plan.plan(c_start, c_goal, runtime, ptype, maxStep,4);
+				Plan.plan(c_start, c_goal, runtime, ptype, maxStep, -1);
 
 				GD << maxStep << "\t";
 

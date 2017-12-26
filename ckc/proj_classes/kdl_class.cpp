@@ -1,7 +1,7 @@
 #include "kdl_class.h"
 
 // Constructor for the robots
-kdl::kdl(double D, double rod_L) {
+kdl::kdl() : L(ROD_LENGTH) {
 	b = 166; // Height of base
 	l1 = 124; // Distance from top facet of base to axis of link 1.
 	l2 = 270; // Length between axes of link 2.
@@ -11,7 +11,8 @@ kdl::kdl(double D, double rod_L) {
 	l5 = 72-13/2; // Distance from axis of link 5 to its facet.
 	lee = 60+13/2; // Distance from facet of link 5 to EE point
 
-	L = rod_L;
+	setQ();
+	setP();
 
 	// Joint limits
 	q1minmax = deg2rad(165);
@@ -25,7 +26,7 @@ kdl::kdl(double D, double rod_L) {
 	initMatrix(T_fk, 4, 4);
 
 	initMatrix(T_pose, 4, 4);
-	T_pose = {{1, 0, 0, D}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+	T_pose = {{1, 0, 0, ROBOTS_DISTANCE}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
 
 	//Definition of a kinematic chain & add segments to the chain
 	// Robot 1
@@ -131,77 +132,6 @@ bool kdl::GD(State q_init_flip) {
 			result = false;
 		else
 			result = true;
-	}
-
-	clock_t end = clock();
-	IK_time += double(end - begin) / CLOCKS_PER_SEC;
-
-	return result;
-}
-
-bool kdl::GD_JL(State q_init_flip) {
-
-	bool valid = true;
-
-	// Flip robot two vector
-	State q_init(q_init_flip.size());
-	for (int i = 0; i < 6; i++)
-		q_init[i] = q_init_flip[i];
-	for (int i = 11, j = 6; i >= 6; i--,j++)
-		q_init[j] = q_init_flip[i];
-	q_init[11] = -q_init[11];
-
-	State q(12);
-
-	IK_counter++;
-	clock_t begin = clock();
-
-	for (int i = 0; i < 3; i++) {
-		cartposIK.p(i) = T_pose[i][3];
-		for (int j = 0; j < 3; j++)
-			cartposIK.M(i,j) = T_pose[i][j];
-	}
-
-	// KDL
-	ChainFkSolverPos_recursive fksolver = ChainFkSolverPos_recursive(chain); 	// Create solver based on kinematic chain
-	ChainIkSolverVel_pinv iksolverv(chain);//Inverse velocity solver
-	ChainIkSolverPos_NR_JL iksolver(chain, q_min, q_max, fksolver,iksolverv,10000,1e-5);//Maximum 10000 iterations, stop at accuracy 1e-5
-
-	//Creation of jntarrays:
-	JntArray qKDL(chain.getNrOfJoints());
-	JntArray qInit(chain.getNrOfJoints());
-
-	for (int i = 0; i < chain.getNrOfJoints(); i++)
-		qInit(i) = q_init[i];
-
-	//Set destination frame
-	KDL::Frame F_dest = cartposIK;//Frame(Vector(1.0, 1.0, 0.0));
-	int ret = iksolver.CartToJnt(qInit, F_dest, qKDL);
-
-	bool result = false;
-	if (ret >= 0) {
-
-		for (int i = 0; i < 12; i++)
-			if (fabs(qKDL(i)) < 1e-4)
-				q[i] = 0;
-			else
-				q[i] = qKDL(i);
-
-		for (int i = 0; i < q.size(); i++) {
-			q[i] = fmod(q[i], 2*PI);
-			if (q[i]>PI)
-				q[i] -= 2*PI;
-			if (q[i]<-PI)
-				q[i] += 2*PI;
-		}
-
-		for (int i = 0; i < 6; i++)
-			q_solution[i] = q[i];
-		for (int i = 11, j = 6; i >= 6; i--,j++)
-			q_solution[j] = q[i];
-		q_solution[6] = -q_solution[6];
-
-		result = true;
 	}
 
 	clock_t end = clock();

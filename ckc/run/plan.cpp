@@ -47,24 +47,24 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
     {
         case PLANNER_BIRRT:
         {
-            return std::make_shared<og::CBiRRT>(si, maxStep, env, knn_);
+            return std::make_shared<og::CBiRRT>(si, dimension_, maxStep, dim_, knn_);
             break;
         }
         case PLANNER_RRT:
         {
-            return std::make_shared<og::RRT>(si, maxStep, env, knn_);
+            return std::make_shared<og::RRT>(si, dimension_, maxStep, dim_, knn_);
             break;
         }
         case PLANNER_LAZYRRT:
         {
-            return std::make_shared<og::LazyRRT>(si, maxStep, env, knn_);
+            return std::make_shared<og::LazyRRT>(si, dimension_, maxStep, dim_, knn_);
             break;
         }
-        case PLANNER_SBL:
-        {
-            return std::make_shared<og::SBL>(si, maxStep, env, knn_);
-            break;
-        }
+        // case PLANNER_SBL:
+        // {
+        //     return std::make_shared<og::SBL>(si, maxStep, env, knn_);
+        //     break;
+        // }
         default:
         {
             OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
@@ -74,7 +74,7 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
     }
 }
 
-void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype, double max_step, int knn) {
+void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype, double max_step, int dim, int knn) {
 
 	// construct the state space we are planning inz
 	ob::StateSpacePtr Q(new ob::RealVectorStateSpace(12)); // Angles of Robot 1 & 2 - R^12
@@ -139,8 +139,12 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 	pdef->setStartAndGoalStates(start, goal);
 	pdef->print();
 
+	// Properties
 	maxStep = max_step;
 	knn_ = knn;
+	dim_ = dim;
+	dimension_ = c_start.size();
+
 	// create a planner for the defined space
 	// To add a planner, the #include library must be added above
 	ob::PlannerPtr planner = allocatePlanner(si, ptype);
@@ -270,7 +274,7 @@ int main(int argn, char ** args) {
 	int mode = 1;
 	switch (mode) {
 	case 1: {
-		Plan.plan(c_start, c_goal, runtime, ptype, 2.8, 6);
+		Plan.plan(c_start, c_goal, runtime, ptype, 2.8, 6, 20);
 
 		break;
 	}

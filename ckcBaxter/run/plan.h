@@ -15,10 +15,9 @@
 #include <ompl/config.h>
 
 // Modified and custom planners
-#include "../planners/CBiRRT.h"
-#include "../planners/RRT.h"
-// #include "../planners/LazyRRT.h"
-// #include "../planners/PRM.h"
+#include "../../planners/CBiRRT.h"
+#include "../../planners/RRT.h"
+#include "../../planners/LazyRRT.h"
 // #include "../planners/SBL.h"
 
 //#include "../validity_checkers/verification_class.h"
@@ -37,7 +36,6 @@ enum plannerType
 	PLANNER_BIRRT,
 	PLANNER_RRT,
 	PLANNER_LAZYRRT,
-	PLANNER_PRM,
 	PLANNER_SBL
 };
 
@@ -61,6 +59,7 @@ public:
 	double maxStep;
 	int knn_;
 	int dim_;
+	int dimension_;	
 
 	//verification_class vfc;
 
