@@ -204,6 +204,9 @@ protected:
 
 	/** \brief Sample in PCA lower space */
 	void samplePCA(Motion *, base::State *);
+
+	/** \brief Sample in PCA lower space using proximity sampling of the nn */
+	void sampleProxPCA(Motion *, base::State *);
 		
 };
 

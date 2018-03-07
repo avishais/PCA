@@ -167,7 +167,9 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
         Motion *nmotion = nn_->nearest(rmotion);
 
         if (usePCA && !gg && nn_->size() > 3) 
-            samplePCA(nmotion, rstate);        
+            samplePCA(nmotion, rstate);    
+        // if (usePCA)
+        //     sampleProxPCA(nmotion, rstate);    
 
         base::State *dstate = rstate;
 
@@ -342,7 +344,37 @@ void ompl::geometric::RRT::samplePCA(Motion *nmotion, base::State *rstate) {
     // Find new sample using pca
     q = sample_pca(NHBR, dim_);
     updateStateVector(rstate, q);
-}    
+}
+
+void ompl::geometric::RRT::sampleProxPCA(Motion *nmotion, base::State *rstate) {
+
+    double proxMaxDistance = 0.1;
+    base::State *Xstate = si_->allocState();
+    State q(get_n());
+
+    Matrix NHBR;
+    int i = 0;
+    while (i < knn_) {
+        sampler_->sampleUniform(rstate);
+        double d = si_->distance(nmotion->state, rstate);
+        if (d > proxMaxDistance)
+        {
+            si_->getStateSpace()->interpolate(nmotion->state, rstate, proxMaxDistance / d, Xstate);
+        }
+        if (!IKproject(Xstate, false))
+            continue;
+
+        retrieveStateVector(Xstate, q);
+        NHBR.push_back(q);
+        i++;
+    }
+    retrieveStateVector(nmotion->state, q);
+    NHBR.push_back(q);
+
+    // Find new sample using pca
+    q = sample_pca(NHBR, dim_);
+    updateStateVector(rstate, q);
+}
 
 void ompl::geometric::RRT::save2file(std::vector<Motion*> mpath) {
 

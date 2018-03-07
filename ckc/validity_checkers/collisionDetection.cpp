@@ -28,7 +28,7 @@ void pv(PQP_REAL V[3], std::string str) {
 }
 
 
-int collisionDetection::collision_state(Matrix M, State q)
+int collisionDetection::collision_state(State q)
 // Returns 0 if no collision
 {
 	collisionCheck_counter++;
@@ -46,6 +46,8 @@ int collisionDetection::collision_state(Matrix M, State q)
 	double rot42 = q[9];
 	double rot52 = q[10];
 	double rot62 = q[11];
+
+	Matrix M = getPMatrix();
 
 	collisionDetection::rod.BeginModel();
 
@@ -962,7 +964,7 @@ void collisionDetection::load_models(){
 	}
 }
 
-collisionDetection::collisionDetection() : env(1)
+collisionDetection::collisionDetection() : env(1), L(ROD_LENGTH)
 {
 	// load the models
 	load_models();
@@ -970,6 +972,9 @@ collisionDetection::collisionDetection() : env(1)
 	collisionDetection::offsetY = 0;
 	collisionDetection::offsetZ = 0;
 	collisionDetection::offsetRot = 0;
+
+	setQ();
+	setP();
 
 }
 

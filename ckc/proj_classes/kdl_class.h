@@ -45,9 +45,6 @@ private:
 
 	double L; // Rod length
 
-	Matrix Q;
-	Matrix P;
-
 public:
 	// Constructor
 	kdl();
@@ -85,6 +82,8 @@ public:
 	/** Log conf. to path.txt file */
 	void log_q(State q);
 
+	State rand_q();
+
 	/** Returns ABB's link lengths */
 	State get_robots_properties() {
 		State P = {b, l1, l2, l3a, l3b, l4, l5, lee};
@@ -106,42 +105,7 @@ public:
 		return IK_time;
 	}
 
-	bool include_joint_limits = true;
-
-	/** Return transformation matrix of rod end-tip in rod coordinate frame (at the other end-point) */
-	Matrix getQ() {
-		return Q;
-	}
-
-	/** Set transformation matrix of rod end-tip in rod coordinate frame (at the other end-point) */
-	void setQ() {
-		State v(4);
-
-		v = {1,0,0,L};
-		Q.push_back(v);
-		v = {0,1,0,0};
-		Q.push_back(v);
-		v = {0,0,1,0};
-		Q.push_back(v);
-		v = {0,0,0,1};
-		Q.push_back(v);
-	}
-
-	/** Set matrix of coordinated along the rod (in rod coordinate frame) */
-	void setP() {
-		State v(3);
-		int dl = 20;
-		int n = L / dl;
-		for (int i = 0; i <= n; i++) {
-			v = {(double)i*dl,0,0};
-			P.push_back(v);
-		}
-	}
-
-	/** Return matrix of coordinated along the rod (in rod coordinate frame) */
-	Matrix getPMatrix() {
-		return P;
-	}
+	bool include_joint_limits = true;	
 };
 
 

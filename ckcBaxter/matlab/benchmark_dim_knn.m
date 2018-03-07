@@ -22,7 +22,7 @@ switch plannerType
         t_wo = mean(Dwo(:,3));
         clear Dwo
     case 'RRT'
-        D = load('Benchmark_RRT_dimpca_knn_2.txt');
+        D = load('Benchmark_RRT_dimpca_knn.txt');
         fprintf('Failures: \t%.1f\n', 100-sum(D(:,3))/size(D,1)*100);
         D = D(D(:,3)==1,:);
         

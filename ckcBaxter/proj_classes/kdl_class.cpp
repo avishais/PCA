@@ -18,7 +18,6 @@ kdl::kdl() : grasp_pose(true), L(ROD_LENGTH) {
 	lEE=0.15e3;
 
 	setQ();
-	setP();
 
 	// Initiate chain with given rod configuration
 	// Arm 1
@@ -93,13 +92,11 @@ bool kdl::GD(State q_init_flip) {
 	for (int i = 13, j = 7; i >= 7; i--,j++)
 		q_init[j] = q_init_flip[i];
 	q_init[13] = -q_init[13];
-
+	
 	State q(14);
 
 	IK_counter++;
 	clock_t begin = clock();
-
-
 	for (int i = 0; i < 3; i++) {
 		cartposIK.p(i) = T_pose[i][3];
 		for (int j = 0; j < 3; j++)
@@ -118,7 +115,7 @@ bool kdl::GD(State q_init_flip) {
 	for (int i = 0; i < chain.getNrOfJoints(); i++)
 		qInit(i) = q_init[i];
 
-	//Set destination frame
+		//Set destination frame
 	KDL::Frame F_dest = cartposIK;//Frame(Vector(1.0, 1.0, 0.0));
 	int ret = iksolver.CartToJnt(qInit, F_dest, qKDL);
 
@@ -260,7 +257,7 @@ void kdl::clearMatrix(Matrix &M) {
 
 void kdl::log_q(State q) {
 	std::ofstream myfile;
-	myfile.open("./paths/path.txt");
+	myfile.open("../paths/path.txt");
 
 	myfile << 1 << endl;
 

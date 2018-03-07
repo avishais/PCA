@@ -17,7 +17,7 @@ GL_LIBS = -lGLU -lGL -lXext -lXmu -lXi -lX11 -lglut
 PQP_DIR= /home/avishai/Documents/PQP_v1.3/
 
 CXX= g++
-CXXFLAGS= -I${OMPL_DIR}/include -I${OMPL_DIR}/lib/x86_64-linux-gnu -I${INC_CLASSES} -I${INC_PLANNERS} -I${PQP_DIR}/include $(GL_INCPATH) -I$(EIGEN_DIR) -I$(DLIB)
+CXXFLAGS= -I${OMPL_DIR}/include -I${OMPL_DIR}/lib/x86_64-linux-gnu -I${INC_CLASSES} -I${INC_PLANNERS} -I${PQP_DIR}/include $(GL_INCPATH) -I$(EIGEN_DIR) -I$(DLIB) -I$(INC_UTILS)
 LDFLAGS=  -L${OMPL_DIR}/lib -L${OMPL_DIR}/lib/x86_64-linux-gnu -lompl -lompl_app_base -lompl_app -lboost_filesystem -lboost_system -lboost_serialization -lboost_program_options -Wl,-rpath ${OMPL_DIR}/lib/x86_64-linux-gnu -L${PQP_DIR}/lib -L${KDL_DIR}/lib -lPQP -lm $(GL_LIBS) -larmadillo -lpthread
 LIBS += -L/usr/lib/x86_64-linux-gnu -lboost_system
 

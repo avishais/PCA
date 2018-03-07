@@ -2,13 +2,15 @@
 
 #define CADLINK "./simulator/"
 
-collisionDetection::collisionDetection() {
+collisionDetection::collisionDetection() : L(ROD_LENGTH) {
 
 	// load the models
 	load_models();
 
 	grasp_pose = true;
 
+	setQ();
+	setP();
 }
 
 void pm(PQP_REAL M[][3], std::string str) {
@@ -34,7 +36,7 @@ void pv(PQP_REAL V[3], std::string str) {
 	std::cout << std::endl;
 }
 
-int collisionDetection::collision_state(Matrix M, State q)
+int collisionDetection::collision_state(State q)
 // Returns 0 if no collision
 {
 	collisionCheck_counter++;
@@ -54,6 +56,8 @@ int collisionDetection::collision_state(Matrix M, State q)
 	double rot52 = q[11];
 	double rot62 = q[12];
 	double rot72 = q[13];
+
+	Matrix M = getPMatrix();
 
 	collisionDetection::rod.BeginModel();
 

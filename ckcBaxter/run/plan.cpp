@@ -275,18 +275,18 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 3;
+	int mode = 1;
 	switch (mode) {
 	case 1: {
 
-		// StateValidityChecker svc;
+		// StateValidityChecker svc(14);
 		// svc.initiate_log_parameters();
 
 		// while (1) {
 		// 	c_start = svc.sample_q();		
 		// 	c_goal = svc.sample_q();
 
-			Plan.plan(c_start, c_goal, runtime, ptype, 1.5, -1, 25);
+			Plan.plan(c_start, c_goal, runtime, ptype, 0.5, -1, 25);
 
 		// 	if (Plan.solved_bool && Plan.total_runtime > 1)
 		// 		break;
@@ -299,15 +299,15 @@ int main(int argn, char ** args) {
 		double d;
 		if (env == 1) {
 			GD.open("./matlab/Benchmark_" + plannerName + "_wo.txt", ios::app);
-			d = 1.0;//1.6;
+			d = 0.4;//1.6;
 		}
 		else if (env == 2) {
-			GD.open("./matlab/Benchmark_" + plannerName + "_envII_w.txt", ios::app);
-			d = 1.5;
+			GD.open("./matlab/Benchmark_" + plannerName + "_wo.txt", ios::app);
+			d = 0.4;
 		}
 
 		for (int k = 0; k < 200; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, d, 12, 60); 
+			Plan.plan(c_start, c_goal, runtime, ptype, d, -1, 60); 
 
 			// Extract from perf file
 			ifstream FromFile;
@@ -355,15 +355,15 @@ int main(int argn, char ** args) {
 	case 4 : { // Benchmark min tree size
 		ofstream GD;
 		if (env == 1)
-			GD.open("./matlab/Benchmark_" + plannerName + "_dimpca_knn_2.txt", ios::app);
+			GD.open("./matlab/Benchmark_" + plannerName + "_dimpca_knn.txt", ios::app);
 		else if (env == 2)
-			GD.open("./matlab/Benchmark_" + plannerName + "_envII_dimpca.txt", ios::app);
+			GD.open("./matlab/Benchmark_" + plannerName + "_dimpca_knn.txt", ios::app);
 
 		for (int k = 0; k < 2000; k++) {
 
-			int knn = 60;
-			// for (int knn = 5; knn <= 120; knn+=15) {
-				for (int j = 1; j < 15; j+=1) {
+			//int knn = 60;
+			for (int knn = 5; knn <= 120; knn+=20) {
+				for (int j = 1; j < 15; j+=2) {
 					int dim = 0 + 1 * j;
 					double maxStep = 1;
 
@@ -371,8 +371,8 @@ int main(int argn, char ** args) {
 
 					Plan.plan(c_start, c_goal, runtime, ptype, maxStep, dim, knn);
 
-					//GD << dim << "\t" << knn << "\t";
-					GD << dim << "\t";
+					GD << dim << "\t" << knn << "\t";
+					//GD << dim << "\t";
 
 					// Extract from perf file
 					ifstream FromFile;
@@ -383,7 +383,7 @@ int main(int argn, char ** args) {
 					FromFile.close();
 					GD << endl;
 				}
-		// }
+		}
 		}
 		GD.close();
 		break;

@@ -3,6 +3,7 @@
  * @brief This is an example program demonstrating the usage of the pca class
  */
 #include "pca.h"
+#include "grassmann_pca.hpp"
 #include <iostream>
 #include <random>
 
@@ -13,15 +14,14 @@ int main()
 
 	srand( time(NULL) );
 
-	const int num_variables = 6;
-	const int num_records = 20;
+	const int num_variables = 2;
+	const int num_records = 11;
 
 	stats::pca pca(num_variables, num_records);
 	pca.set_do_bootstrap(false, 100);
-	
 
 	double T = 0;
-	int N = 12;
+	int N = 1;
 	for (int j = 0; j < N; j++)
 	{
 
@@ -30,20 +30,23 @@ int main()
 		cout << "Clear time: " << double(clock() - st) / CLOCKS_PER_SEC << endl;
 
 		cout << "Adding random data records ..." << endl;
-		ofstream mf;
+		ifstream mf;
 		mf.open("samples.txt");
 		
 		for (int i = 0; i < num_records; ++i)
 		{
+			int j = 0;
 			vector<double> record(num_variables);
 			for (auto &value : record)
 			{
-				value = ((double)rand()/RAND_MAX) * 20 - 10;
-				mf << value << " ";
+				// value = ((double)rand()/RAND_MAX) * 20 - 10;
+				mf >> value;
+				//cout << value << " ";
+				j++;
 			}
+			//cout << endl;			
 
 			pca.add_record(record);
-			mf << endl;
 		}
 		mf.close();
 
@@ -73,6 +76,15 @@ int main()
 	cout << "Projection Check = " << pca.check_projection_accurate() << endl;*/
 
 	pca.save("pca_results");
+
+	// -------------------------
+
+	grassmann_averages_pca::grassmann_pca<vector<double>> gpca;
+
+	// gpca.batch_process<data_t, 
+
+
+	
 
 	return 0;
 }

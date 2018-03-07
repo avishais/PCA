@@ -11,9 +11,6 @@ kdl::kdl() : L(ROD_LENGTH) {
 	l5 = 72-13/2; // Distance from axis of link 5 to its facet.
 	lee = 60+13/2; // Distance from facet of link 5 to EE point
 
-	setQ();
-	setP();
-
 	// Joint limits
 	q1minmax = deg2rad(165);
 	q2minmax = deg2rad(110);
@@ -255,7 +252,7 @@ void kdl::clearMatrix(Matrix &M) {
 
 void kdl::log_q(State q) {
 	std::ofstream myfile;
-	myfile.open("./paths/path.txt");
+	myfile.open("../paths/path.txt");
 
 	myfile << 1 << endl;
 
@@ -264,4 +261,12 @@ void kdl::log_q(State q) {
 	myfile << endl;
 
 	myfile.close();
+}
+
+State kdl::rand_q() {
+	State q(12);
+	for (int i = 0; i < q.size(); i++)
+		q[i] = -PI + (double)rand()/RAND_MAX * 2*PI;
+
+	return q;
 }

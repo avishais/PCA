@@ -49,8 +49,7 @@ private:
 
 	bool grasp_pose; // false - rod is grasped such that it is continuous to the arm, true - rod is grasped perpendicular to the gripper plane
 
-	Matrix Q;
-	Matrix P;
+	Matrix Q;	
 
 public:
 	// Constructor
@@ -125,22 +124,6 @@ public:
 		Q.push_back(v);
 		v = {0,0,0,1};
 		Q.push_back(v);
-	}
-
-	/** Set matrix of coordinated along the rod (in rod coordinate frame) */
-	void setP() {
-		State v(3);
-		int dl = 20;
-		int n = L / dl;
-		for (int i = 0; i <= n; i++) {
-			v = {(double)i*dl,0,0};
-			P.push_back(v);
-		}
-	}
-
-	/** Return matrix of coordinated along the rod (in rod coordinate frame) */
-	Matrix getPMatrix() {
-		return P;
 	}
 };
 

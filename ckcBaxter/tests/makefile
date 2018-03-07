@@ -23,12 +23,13 @@ LDFLAGS=  -L${OMPL_DIR}/lib -L${OMPL_DIR}/lib/x86_64-linux-gnu -lompl -lompl_app
 
 CPPPQP = ${INC_VALIDITY}collisionDetection.cpp ${INC_VALIDITY}model.cpp
 
-CPP = $(INC_CLASSES)kdl_class.cpp $(INC_VALIDITY)StateValidityChecker.cpp
+CPP = $(INC_CLASSES)kdl_class.cpp #$(INC_VALIDITY)StateValidityChecker.cpp
 
 CPPPCA = ${INC_UTILS}pca.cpp ${INC_UTILS}utils.cpp
 
 all:
-	$(CXX) test_sample_svc.cpp $(CPP) $(CPPPQP) $(CPPPCA) -o tsmp $(CXXFLAGS) $(LDFLAGS) -std=c++11
+	#$(CXX) test_sample_svc.cpp $(CPP) $(CPPPQP) $(CPPPCA) -o tsmp $(CXXFLAGS) $(LDFLAGS) -std=c++11
 	#$(CXX) test_sample.cpp $(CPP) -o tsmp $(CXXFLAGS) $(LDFLAGS) -std=c++11
+	$(CXX) gen_samples_4NN.cpp $(CPP) -o tsmp $(CXXFLAGS) $(LDFLAGS) -std=c++11
 
 

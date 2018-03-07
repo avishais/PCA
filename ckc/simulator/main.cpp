@@ -34,6 +34,8 @@ PQP_REAL M5[3][3],M6[3][3],M7[3][3];
 
 PQP_REAL Mobs[3][3], Tobs[3];
 
+void execute_path(int);
+
 bool withObs = true;
 int env;
 
@@ -169,6 +171,11 @@ void KeyboardCB(unsigned char key, int x, int y)
 	case '0': rot42 += .1; break;
 	case '-': rot52 += .1; break;
 	case '=': rot62 += .1; break;
+	case 'r':
+		std::cout << "Updating path...\n";
+		step = 0;
+		glutTimerFunc(10,execute_path,0);
+		break;
 	}
 
 	glutPostRedisplay();

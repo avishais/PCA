@@ -67,7 +67,7 @@ State StateValidityChecker::sample_q() {
 
 		q = get_GD_result();
 
-		if ( withObs && (collision_state(getPMatrix(), q) || !check_angle_limits(q)) )  {
+		if ( withObs && (collision_state(q) || !check_angle_limits(q)) )  {
 			sampling_counter[1]++;
 			continue;
 		}
@@ -99,7 +99,7 @@ bool StateValidityChecker::IKproject(State &q, bool includeObs) {
 
 	q = get_GD_result();
 
-	if (includeObs && withObs && collision_state(getPMatrix(), q))
+	if (includeObs && withObs && collision_state(q))
 		return false;
 
 	return true;
@@ -120,7 +120,7 @@ bool StateValidityChecker::isValid(const ob::State *state) {
 
 	q = get_GD_result();
 
-	if (withObs && collision_state(getPMatrix(), q))
+	if (withObs && collision_state(q))
 		return false;
 
 	updateStateVector(state, q);
@@ -181,7 +181,7 @@ bool StateValidityChecker::isValidRBS(State &q) {
 
 	q = get_GD_result();
 
-	if (withObs && collision_state(getPMatrix(), q))
+	if (withObs && collision_state(q))
 		return false;
 
 	return true;
@@ -352,7 +352,6 @@ int StateValidityChecker::get_dim_pca() {
 
 	return i;
 }
-	
 
 // ------------------------------------ MISC functions ---------------------------------------------------
 
@@ -433,6 +432,12 @@ void StateValidityChecker::LogPerf2file() {
 	std::ofstream myfile;
 	myfile.open("./paths/perf_log.txt");
 
+	
+	
+	
+	
+	
+	
 	myfile << final_solved << endl;
 	myfile << PlanDistance << endl; // Distance between nodes 1
 	myfile << total_runtime << endl; // Overall planning runtime 2
