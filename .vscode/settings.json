@@ -32,6 +32,11 @@
         "type_traits": "cpp",
         "typeinfo": "cpp",
         "utility": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "codecvt": "cpp",
+        "condition_variable": "cpp",
+        "slist": "cpp",
+        "memory": "cpp",
+        "algorithm": "cpp"
     }
 }

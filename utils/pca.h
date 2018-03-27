@@ -7,6 +7,10 @@
 #include <string>
 #include <sstream>
 #include <armadillo>
+
+#include <chrono>  // for high_resolution_clock
+typedef std::chrono::high_resolution_clock Clock;
+
 /**
  * @brief A namespace for statistical analysis
  */
@@ -67,6 +71,8 @@ public:
 	 * Addition by Avishai Sintov Dec. 8, 2017
 	 */
 	void print_records();
+	void print_eigenvalues();
+	void print_eigenvectors(int dim);
 	/**
 	 * @brief Set number of records in the expected computation
 	 * Only allocates the memory in data_

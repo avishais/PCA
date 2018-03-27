@@ -55,7 +55,7 @@ State StateValidityChecker::sample_q() {
 
 	State q(n_);
 
-	clock_t sT = clock();
+	auto sT = Clock::now();
 	while (1) {
 		for (int i = 0; i < q.size(); i++)
 			q[i] = -PI + (double)rand()/RAND_MAX * 2*PI;
@@ -72,7 +72,7 @@ State StateValidityChecker::sample_q() {
 			continue;
 		}
 
-		sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+		sampling_time += std::chrono::duration<double>(Clock::now() - sT).count();
 		sampling_counter[0]++;
 		return q;
 	}
@@ -175,7 +175,6 @@ bool StateValidityChecker::isValidRBS(State &q) {
 
 	isValid_counter++;
 
-	clock_t s = clock();
 	if (!GD(q))
 		return false;
 
@@ -286,7 +285,7 @@ bool StateValidityChecker::reconstructRBS(State q1, State q2, Matrix &M, int ite
 
 // ------------------------------------ PCA functions ----------------------------------------------------
 
-State StateValidityChecker::sample_pca(Matrix nhbr, int dim_pca) {
+State StateValidityChecker::sample_pca(Matrix nhbr, int dim_pca, State qr) {
 
 	int num_records = nhbr.size();	
 	set_num_records(num_records);
@@ -296,14 +295,50 @@ State StateValidityChecker::sample_pca(Matrix nhbr, int dim_pca) {
 
 	solve();
 
-	//dim_pca = get_dim_pca();
+	// dim_pca = get_dim_pca();
 	
-	State q_pca(dim_pca);
-	for (int i = 0; i < dim_pca; i++)
-		q_pca[i] = -PI + (double)rand()/RAND_MAX * 2*PI;
+	// State q_pca(dim_pca);
+	// for (int i = 0; i < dim_pca; i++)
+	// 	q_pca[i] = -10 + (double)rand()/RAND_MAX * 2*10; //qr[i];//
+	// State q = reconstruct_pca(q_pca);
 
-	State q = reconstruct_pca(q_pca);
+	State q = project2pca(qr, dim_pca);
+	
 	return q;
+}
+
+State StateValidityChecker::project2pca(State q, int dim_pca) {
+
+	arma::Mat<double> E(n_, dim_pca);
+	arma::Row<double> qp(n_);
+	arma::Row<double> qm(n_);
+	State eigv(n_), qs(n_), q_mean(n_);
+
+	q_mean = get_mean_values();
+	for (int j = 0; j < n_; j++) {
+		qm(j) = q_mean[j];
+		qp(j) = q[j];
+	}
+
+	// Get rotationmatrix constructed by the 'dim_pca' eigen-vectors
+	for (int i = 0; i < dim_pca; i++) {
+		eigv = get_eigenvector(i);
+		for (int j = 0; j < eigv.size(); j++) 
+			E(j,i) = eigv[j];
+	}
+
+	// Map (project) random point to the hyper-plane of in the reduced space 
+	arma::Row<double> z(dim_pca);
+	z = (qp - qm) * E;
+
+	// Calculate projected point in the original space
+	arma::Col<double> qr(n_);
+	qr = E * z.t() + qm.t();
+
+	for (int j = 0; j < qr.size(); j++)
+		qs[j] = qr(j);
+
+	return qs;
 }
 
 State StateValidityChecker::reconstruct_pca(State q) {
@@ -313,13 +348,14 @@ State StateValidityChecker::reconstruct_pca(State q) {
 	arma::Col<double> qm(n_);
 	State eigv(n_), qs(n_), q_mean(n_);
 
+	q_mean = get_mean_values();
+	for (int j = 0; j < q_mean.size(); j++) 
+		qm(j) = q_mean[j];
+
 	for (int i = 0; i < q.size(); i++) {
 		eigv = get_eigenvector(i);
-		q_mean = get_mean_values();
-		for (int j = 0; j < eigv.size(); j++) {
+		for (int j = 0; j < eigv.size(); j++) 
 			E(j,i) = eigv[j];
-			qm(j) = q_mean[j];
-		}
 		qp(i) = q[i];
 	}
 
@@ -345,7 +381,7 @@ int StateValidityChecker::get_dim_pca() {
 	sum_evl = 0;
 	while (i < n_) {
 		sum_evl += evl[i];
-		if (sum_evl > 0.99)
+		if (sum_evl > 0.5)
 			break;
 		i++;
 	}
@@ -432,12 +468,6 @@ void StateValidityChecker::LogPerf2file() {
 	std::ofstream myfile;
 	myfile.open("./paths/perf_log.txt");
 
-	
-	
-	
-	
-	
-	
 	myfile << final_solved << endl;
 	myfile << PlanDistance << endl; // Distance between nodes 1
 	myfile << total_runtime << endl; // Overall planning runtime 2

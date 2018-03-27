@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan, Avishai Sintov */
 
 #include "plan.h"
+#include <time.h>
 
 bool isStateValid(const ob::State *state)
 {
@@ -45,26 +46,31 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
 {
     switch (p_type)
     {
-        case PLANNER_BIRRT:
-        {
-            return std::make_shared<og::CBiRRT>(si, dimension_, maxStep, dim_, knn_);
-            break;
-        }
+        // case PLANNER_BIRRT:
+        // {
+        //     return std::make_shared<og::CBiRRT>(si, dimension_, maxStep, dim_, knn_);
+        //     break;
+        // }
         case PLANNER_RRT:
         {
             return std::make_shared<og::RRT>(si, dimension_, maxStep, dim_, knn_);
             break;
         }
-        case PLANNER_LAZYRRT:
-        {
-            return std::make_shared<og::LazyRRT>(si, dimension_, maxStep, dim_, knn_);
-            break;
-        }
+        // case PLANNER_LAZYRRT:
+        // {
+        //     return std::make_shared<og::LazyRRT>(si, dimension_, maxStep, dim_, knn_);
+        //     break;
+        // }
         // case PLANNER_SBL:
         // {
         //     return std::make_shared<og::SBL>(si, maxStep, env, knn_);
         //     break;
         // }
+		case PLANNER_RRTC:
+        {
+            return std::make_shared<og::RRTConnect>(si, dimension_, maxStep, dim_, knn_);
+            break;
+        }
         default:
         {
             OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
@@ -166,10 +172,9 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 	//pdef->print(std::cout); // Prints problem definition such as start and goal states and optimization objective
 
 	// attempt to solve the problem within one second of planning time
-	clock_t begin = clock();
+	auto begin = Clock::now();
 	ob::PlannerStatus solved = planner->solve(runtime);
-	clock_t end = clock();
-	cout << "Runtime: " << double(end - begin) / CLOCKS_PER_SEC << endl;
+	cout << "Runtime: " << std::chrono::duration<double>(Clock::now() - begin).count() << endl;
 
 	if (solved) {
 		// get the goal representation from the problem definition (not the same as the goal state)
@@ -244,6 +249,10 @@ int main(int argn, char ** args) {
 			ptype = PLANNER_SBL;
 			plannerName = "SBL";
 			break;
+		case 5 :
+			ptype = PLANNER_RRTC;
+			plannerName = "RRTConnect";
+			break;
 		default :
 			cout << "Error: Requested planner not defined.";
 			exit(1);
@@ -271,10 +280,10 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 1;
+	int mode = 2;
 	switch (mode) {
 	case 1: {
-		Plan.plan(c_start, c_goal, runtime, ptype, 2.8, 0, 20);
+		Plan.plan(c_start, c_goal, runtime, ptype, 2.8, 6, 20);
 
 		break;
 	}
@@ -282,16 +291,17 @@ int main(int argn, char ** args) {
 		ofstream GD;
 		double d;
 		if (env == 1) {
-			GD.open("./matlab/Benchmark_" + plannerName + "_envI_wo.txt", ios::app);
+			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_s28_dM_k60.txt", ios::app);
 			d = 2.8;
+			// d = 1;
 		}
 		else if (env == 2) {
 			GD.open("./matlab/Benchmark_" + plannerName + "_envII_w.txt", ios::app);
 			d = 0.8;
 		}
 
-		for (int k = 0; k < 500; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, d, 11); 
+		for (int k = 0; k < 50; k++) {
+			Plan.plan(c_start, c_goal, runtime, ptype, d, 6, 60); 
 
 			// Extract from perf file
 			ifstream FromFile;
@@ -308,18 +318,18 @@ int main(int argn, char ** args) {
 	case 3 : { // Benchmark maximum step size
 		ofstream GD;
 		if (env == 1)
-			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_rB.txt", ios::app);
+			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_d6_k20_rB.txt", ios::app);
 		else if (env == 2)
 			GD.open("./matlab/Benchmark_" + plannerName + "_envII_w_rB.txt", ios::app);
 
 		for (int k = 0; k < 50; k++) {
 
-			for (int j = 0; j < 15; j++) {
-				double maxStep = 0.4 + 0.2*j;
+			for (int j = 0; j < 13; j++) {
+				double maxStep = 0.6 + 0.2*j;
 
 				cout << "** Running GD iteration " << k << " with maximum step: " << maxStep << " **" << endl;
 
-				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
+				Plan.plan(c_start, c_goal, runtime, ptype, maxStep, 6, 90);
 
 				GD << maxStep << "\t";
 

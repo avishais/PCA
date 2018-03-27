@@ -23,6 +23,9 @@
 
 #include "../properties.h"
 
+#include <chrono>  // for high_resolution_clock
+typedef std::chrono::high_resolution_clock Clock;
+
 #define PI 3.1416
 
 using namespace std;

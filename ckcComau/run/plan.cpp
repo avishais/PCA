@@ -171,10 +171,9 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 	//pdef->print(std::cout); // Prints problem definition such as start and goal states and optimization objective
 
 	// attempt to solve the problem within one second of planning time
-	clock_t begin = clock();
+	auto begin = Clock::now();
 	ob::PlannerStatus solved = planner->solve(runtime);
-	clock_t end = clock();
-	cout << "Runtime: " << double(end - begin) / CLOCKS_PER_SEC << endl;
+	cout << "Runtime: " << std::chrono::duration<double>(Clock::now() - begin).count() << endl;
 
 	if (solved) {
 		// get the goal representation from the problem definition (not the same as the goal state)
@@ -281,7 +280,7 @@ int main(int argn, char ** args) {
 	int mode = 2;
 	switch (mode) {
 	case 1: {
-		Plan.plan(c_start, c_goal, runtime, ptype, 1.4, 6, 5);
+		Plan.plan(c_start, c_goal, runtime, ptype, 1.4, 0, 100);
 
 		break;
 	}
@@ -289,12 +288,12 @@ int main(int argn, char ** args) {
 		ofstream GD;
 		double d;
 		if (env == 1) {
-			GD.open("./matlab/Benchmark_" + plannerName + "_PCA_k5.txt", ios::app);
-			d = 0.2;
+			GD.open("./matlab/Benchmark_" + plannerName + "_wo_s14.txt", ios::app);
+			d = 1.4;
 		}
 
 		for (int k = 0; k < 50; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, d, 6, 5); 
+			Plan.plan(c_start, c_goal, runtime, ptype, d, 0, 20); 
 
 			// Extract from perf file
 			ifstream FromFile;

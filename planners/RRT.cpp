@@ -116,7 +116,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
     base::State *start_node = si_->allocState();
     
     checkValidity();
-    startTime = clock();
+    auto startTime = Clock::now();
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
@@ -160,16 +160,18 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
             goal_s->sampleGoal(rstate);
             gg = true;
         }
-        else
+        else 
             sampler_->sampleUniform(rstate);
 
         /* find closest state in the tree */
         Motion *nmotion = nn_->nearest(rmotion);
 
-        if (usePCA && !gg && nn_->size() > 3) 
+        if (usePCA && !gg && nn_->size() > 3) {
             samplePCA(nmotion, rstate);    
+            // nmotion = nn_->nearest(rmotion);  
+        }
         // if (usePCA)
-        //     sampleProxPCA(nmotion, rstate);    
+        //     sampleProxPCA(nmotion, rstate);  
 
         base::State *dstate = rstate;
 
@@ -187,13 +189,13 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
         if (!(gg && reach)) {
 
             // Project dstate (which currently is not on the manifold)
-            clock_t sT = clock();
+            auto sT = Clock::now();
             if (!IKproject(dstate)) {// Collision check is done inside the projection
-                sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+                sampling_time += std::chrono::duration<double>(Clock::now() - sT).count();
 				sampling_counter[1]++;
                 continue;
             }
-            sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+            sampling_time += std::chrono::duration<double>(Clock::now() - sT).count();
 			sampling_counter[0]++;
 
         	retrieveStateVector(dstate, q);
@@ -206,11 +208,11 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
         }
 
         // Check motion
-        clock_t sT = clock();
+        auto sT = Clock::now();
         local_connection_count++;
         d_lc += si_->distance(nmotion->state, dstate); // *****
         bool validMotion = checkMotionRBS(nmotion->state, dstate);
-        local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
+        local_connection_time += std::chrono::duration<double>(Clock::now() - sT).count();
 
         if (validMotion)
         {
@@ -247,7 +249,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 
     if (solution != nullptr)
     {
-    	total_runtime = double(clock() - startTime) / CLOCKS_PER_SEC;
+    	total_runtime = std::chrono::duration<double>(Clock::now() - startTime).count();
     	cout << "Solved in " << total_runtime << "s." << endl;
 
         lastGoalMotion_ = solution;
@@ -278,7 +280,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
     if (!solved)
     {
     	// Report computation time
-    	total_runtime = double(clock() - startTime) / CLOCKS_PER_SEC;
+    	total_runtime = std::chrono::duration<double>(Clock::now() - startTime).count();
 
         nodes_in_trees = nn_->size();
         
@@ -328,7 +330,8 @@ void ompl::geometric::RRT::samplePCA(Motion *nmotion, base::State *rstate) {
 
     // Find up to knn nearest neighbors to nmotion in the tree
     nn_->nearestK(nmotion, min(knn_, (int)nn_->size()), nhbr); //
-    //nn_->nearestR(nmotion, nn_radius_, nhbr);
+    // nn_radius_ = 1;
+    // nn_->nearestR(nmotion, nn_radius_, nhbr);
 
     // Create vector<vector> db for neighbors
     Matrix NHBR;
@@ -339,10 +342,10 @@ void ompl::geometric::RRT::samplePCA(Motion *nmotion, base::State *rstate) {
     retrieveStateVector(nmotion->state, q);
     NHBR.push_back(q);
 
-    //retrieveStateVector(rstate, q);
+    retrieveStateVector(rstate, q);
 
     // Find new sample using pca
-    q = sample_pca(NHBR, dim_);
+    q = sample_pca(NHBR, dim_, q);
     updateStateVector(rstate, q);
 }
 

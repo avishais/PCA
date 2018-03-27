@@ -159,6 +159,27 @@ void pca::print_records() {
 	}
 }
 
+void pca::print_eigenvalues() {
+
+	std::cout << "Eigenvalues:\n";
+	std::vector<double> M = get_eigenvalues();
+	for (int i = 0; i < M.size(); i++) 
+		std::cout << M[i] << " ";
+	std::cout << std::endl;
+}
+
+void pca::print_eigenvectors(int dim) {
+
+	std::cout << "Eigenvectors:\n";
+	for (int k = 0; k < dim; k++) {
+		std::cout << "[ ";
+		std::vector<double> M = get_eigenvector(k);
+		for (int i = 0; i < M.size(); i++) 
+			std::cout << M[i] << " ";
+		std::cout << "]" << std::endl;
+	}
+}
+
 void pca::set_num_records(int k) {
 
 	if (data_.n_rows != k) 
@@ -194,7 +215,7 @@ void pca::set_solver(const std::string& solver) {
 
 void pca::solve() {
 	pca_count++;
-	clock_t st = clock();
+	auto st = Clock::now();
 
 	assert_num_vars_();
 
@@ -232,7 +253,7 @@ void pca::solve() {
 
 	if (do_bootstrap_) bootstrap_eigenvalues_();
 
-	pca_time += double(clock() - st) / CLOCKS_PER_SEC;
+	pca_time += std::chrono::duration<double>(Clock::now() - st).count();
 }
 
 void pca::bootstrap_eigenvalues_() {

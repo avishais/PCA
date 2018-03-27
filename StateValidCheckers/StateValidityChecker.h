@@ -110,10 +110,13 @@ public:
 	}
 
 	/** Sample based on pca of nearest neighbors */
-	State sample_pca(Matrix, int = 6);
+	State sample_pca(Matrix, int = 6, State = {0,0,0,0,0,0,0,0,0,0,0,0});
 
 	/** Reconstruct a vector in the pca subspace to the C-space */
 	State reconstruct_pca(State);
+
+	/** Project random point on to PCA hyper-plane **/
+	State project2pca(State, int);
 
 	/** Find the number of dimensions that preseve a certain percent of the information */
 	int get_dim_pca();		
@@ -131,6 +134,9 @@ public:
 
 	int get_n() {
 		return n_;
+	}
+	void set_n(double n) {
+		n_ = n;
 	}
 	double get_RBS_tol() {
 		return RBS_tol;
