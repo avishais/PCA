@@ -21,6 +21,9 @@
 #include <vector>
 #include <math.h>
 
+#include <chrono>  // for high_resolution_clock
+typedef std::chrono::high_resolution_clock Clock;
+
 #define PI_ 3.1416
 #define ARMS_DISTANCE 518.09
 #define ROD_LENGTH 500

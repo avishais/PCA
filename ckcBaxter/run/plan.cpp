@@ -45,11 +45,11 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
 {
     switch (p_type)
     {
-        case PLANNER_BIRRT:
-        {
-            return std::make_shared<og::CBiRRT>(si, dimension_, maxStep, dim_, knn_);
-            break;
-        }
+        // case PLANNER_BIRRT:
+        // {
+        //     return std::make_shared<og::CBiRRT>(si, dimension_, maxStep, dim_, knn_);
+        //     break;
+        // }
         case PLANNER_RRT:
         {
             return std::make_shared<og::RRT>(si, dimension_, maxStep, dim_, knn_);
@@ -65,6 +65,11 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
         //     return std::make_shared<og::SBL>(si, maxStep, env);
         //     break;
         // }
+		case PLANNER_RRTC:
+        {
+            return std::make_shared<og::RRTConnect>(si, dimension_, maxStep, dim_, knn_);
+            break;
+        }
         default:
         {
             OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
@@ -171,9 +176,9 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 	//pdef->print(std::cout); // Prints problem definition such as start and goal states and optimization objective
 
 	// attempt to solve the problem within one second of planning time
-	clock_t begin = clock();
+	auto begin = Clock::now();
 	ob::PlannerStatus solved = planner->solve(runtime);
-	total_runtime =  double(clock() - begin) / CLOCKS_PER_SEC;
+	total_runtime =  std::chrono::duration<double>(Clock::now() - begin).count();
 	cout << "Runtime: " << total_runtime << endl;
 
 	if (solved) {
@@ -249,6 +254,10 @@ int main(int argn, char ** args) {
 			ptype = PLANNER_SBL;
 			plannerName = "SBL";
 			break;
+		case 5 :
+			ptype = PLANNER_RRTC;
+			plannerName = "RRTConnect";
+			break;
 		default :
 			cout << "Error: Requested planner not defined.";
 			exit(1);
@@ -260,6 +269,8 @@ int main(int argn, char ** args) {
 	}
 
 	plan_C Plan;
+
+	cout << "env: " << env << endl;
 
 	srand (time(NULL));
 
@@ -275,7 +286,7 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 1;
+	int mode = 2;
 	switch (mode) {
 	case 1: {
 
@@ -298,16 +309,16 @@ int main(int argn, char ** args) {
 		ofstream GD;
 		double d;
 		if (env == 1) {
-			GD.open("./matlab/Benchmark_" + plannerName + "_wo.txt", ios::app);
-			d = 0.4;//1.6;
+			GD.open("./matlab/Benchmark_" + plannerName + "_wo_s08.txt", ios::app);
+			d = 0.8;
 		}
 		else if (env == 2) {
-			GD.open("./matlab/Benchmark_" + plannerName + "_wo.txt", ios::app);
-			d = 0.4;
+			GD.open("./matlab/Benchmark_" + plannerName + "_w_s14_d6_k40.txt", ios::app);
+			d = 1.4;
 		}
 
-		for (int k = 0; k < 200; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, d, -1, 60); 
+		for (int k = 0; k < 50; k++) {
+			Plan.plan(c_start, c_goal, runtime, ptype, d, 6, 40); 
 
 			// Extract from perf file
 			ifstream FromFile;

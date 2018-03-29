@@ -63,7 +63,7 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
         // }
         // case PLANNER_SBL:
         // {
-        //     return std::make_shared<og::SBL>(si, maxStep, env, knn_);
+        //     return std::make_shared<og::SBL>(si, dimension_, maxStep, dim_, knn_);
         //     break;
         // }
 		case PLANNER_RRTC:
@@ -280,10 +280,10 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 2;
+	int mode = 1;
 	switch (mode) {
 	case 1: {
-		Plan.plan(c_start, c_goal, runtime, ptype, 2.8, 6, 20);
+		Plan.plan(c_start, c_goal, runtime, ptype, 2.8, 6, 10);
 
 		break;
 	}
@@ -291,7 +291,7 @@ int main(int argn, char ** args) {
 		ofstream GD;
 		double d;
 		if (env == 1) {
-			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_s28_dM_k60.txt", ios::app);
+			GD.open("./matlab/Benchmark_" + plannerName + "_envI_w_s28_d6_k20.txt", ios::app);
 			d = 2.8;
 			// d = 1;
 		}
@@ -301,7 +301,7 @@ int main(int argn, char ** args) {
 		}
 
 		for (int k = 0; k < 50; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, d, 6, 60); 
+			Plan.plan(c_start, c_goal, runtime, ptype, d, 6, 20); 
 
 			// Extract from perf file
 			ifstream FromFile;

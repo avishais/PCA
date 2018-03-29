@@ -30,8 +30,8 @@ switch plannerType
         D{2} = D{2}(D{2}(:,2)==1,:); 
         
     case 'RRT'
-        D{1} = load('Benchmark_RRT_wo.txt'); 
-        D{2} = load('Benchmark_RRT_wo.txt'); 
+        D{1} = load('Benchmark_RRT_w_s14_d6_k10.txt'); 
+        D{2} = load('Benchmark_RRT_wo_s14.txt'); 
         fprintf('Failures: \t%.1f, %.1f \n', 100-sum(D{1}(:,1))/size(D{1},1)*100, 100-sum(D{2}(:,1))/size(D{2},1)*100);
         d = 0.8;
         D{1} = [d*ones(size(D{1},1),1) D{1}];

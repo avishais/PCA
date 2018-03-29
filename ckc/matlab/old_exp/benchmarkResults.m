@@ -17,7 +17,7 @@ clc
 d = 2.8;
 %%
 planners = {'BiRRT','RRT','LazyRRT'};
-plannerType = planners{2};
+plannerType = planners{1};
 switch plannerType
     case 'BiRRT'
         D{1} = load('Benchmark_CBiRRT_envI_w.txt'); 

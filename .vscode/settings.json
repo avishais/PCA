@@ -37,6 +37,7 @@
         "condition_variable": "cpp",
         "slist": "cpp",
         "memory": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "iostream": "cpp"
     }
 }

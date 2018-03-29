@@ -144,13 +144,13 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
     if (mode==1 || !reach) { // equivalent to (!(mode==2 && reach))
 
         // Project dstate (which currently is not on the manifold)
-        clock_t sT = clock();
+        auto sT = Clock::now();
         if (!IKproject(dstate)) {  // Collision check is done inside the projection
-            sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+            sampling_time += std::chrono::duration<double>(Clock::now() - sT).count();
             sampling_counter[1]++;
             return TRAPPED;
         }
-        sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+        sampling_time += std::chrono::duration<double>(Clock::now() - sT).count();
         sampling_counter[0]++;
 
         si_->copyState(tgi.xstate, dstate);
@@ -158,11 +158,11 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
     }
 
     // Check motion
-    clock_t sT = clock();
+    auto sT = Clock::now();
     local_connection_count++;
     //bool validMotion = checkMotion(nmotion->state, dstate);
     bool validMotion = checkMotionRBS(nmotion->state, dstate);
-    local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
+    local_connection_time += std::chrono::duration<double>(Clock::now() - sT).count();
 
     if (validMotion)
     {
@@ -194,7 +194,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 	State q(get_n());
 
     checkValidity();
-    startTime = clock();
+    auto startTime = Clock::now();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
 
     if (!goal)
@@ -274,7 +274,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
         /* find closest state in the tree */
         Motion *nmotion = tree->nearest(rmotion);
 
-        if (usePCA)// && tree->size() > 3)
+        if (usePCA && tree->size() > 3)
             samplePCA(tree, nmotion, rstate);
         // if (usePCA)
         //     sampleProxPCA(nmotion, rstate);
@@ -306,7 +306,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
             if (gsc == REACHED && goal->isStartGoalPairValid(startMotion->root, goalMotion->root))
             {
                 // Report computation time
-                total_runtime = double(clock() - startTime) / CLOCKS_PER_SEC;
+                total_runtime = std::chrono::duration<double>(Clock::now() - startTime).count();
                 cout << "Solved in " << total_runtime << "s." << endl;
             
                 // it must be the case that either the start tree or the goal tree has made some progress
@@ -362,7 +362,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 	{
 		// Report computation time
 		endTime = clock();
-		total_runtime = double(endTime - startTime) / CLOCKS_PER_SEC;
+		total_runtime = std::chrono::duration<double>(Clock::now() - startTime).count();
 
 		nodes_in_trees = tStart_->size() + tGoal_->size();
 		final_solved = false;

@@ -20,8 +20,8 @@ switch plannerType
         D{1} = D{1}(D{1}(:,2)==1,:); 
         D{2} = D{2}(D{2}(:,2)==1,:); 
     case 'RRT'
-        D{1} = load('Benchmark_RRT_w_s14_d6_k60.txt'); 
-        D{2} = load('Benchmark_RRT_wo_s06.txt'); 
+        D{1} = load('Benchmark_RRT_w_s03.txt'); 
+        D{2} = load('Benchmark_RRT_wo_s03.txt'); 
         fprintf('Failures: \t%.1f, %.1f \n', 100-sum(D{1}(:,1))/size(D{1},1)*100, 100-sum(D{2}(:,1))/size(D{2},1)*100);
         D{1} = [d*ones(size(D{1},1),1) D{1}];
         D{2} = [d*ones(size(D{2},1),1) D{2}];
@@ -71,6 +71,7 @@ disp('------------ loc.-con. ------------');
 fprintf('Loc.-con. time:    \t%.2f\t%.2f \t(sec)\n', F(12,1), F(12,2));
 fprintf('Loc.-con. count:   \t%.2f\t%.2f \t\n', F(13,1), F(13,2));
 fprintf('Loc.-con. success: \t%.2f\t%.2f \t(%%)\n', 100*F(14,1)/F(13,1), 100*F(14,2)/F(13,2));
+fprintf('Loc.-con. distance:\t%.2f\t%.2f \t\n', F(20,1), F(20,2));
 disp('----------- Projection ------------');
 fprintf('Proj. time:        \t%.2f\t%.2f \t(sec)\n', F(6,1), F(6,2));
 fprintf('Proj. count:       \t%.2f\t%.2f \t\n', F(5,1), F(5,2));

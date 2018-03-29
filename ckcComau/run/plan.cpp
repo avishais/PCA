@@ -280,20 +280,20 @@ int main(int argn, char ** args) {
 	int mode = 2;
 	switch (mode) {
 	case 1: {
-		Plan.plan(c_start, c_goal, runtime, ptype, 1.4, 0, 100);
+		Plan.plan(c_start, c_goal, runtime, ptype, 0.3, 6, 100);
 
 		break;
 	}
-	case 2 : { // Benchmark method with constant d = 2.8 (env I) or d = 0.8 (env II))
+	case 2 : { // Benchmark method with constant d 
 		ofstream GD;
 		double d;
 		if (env == 1) {
-			GD.open("./matlab/Benchmark_" + plannerName + "_wo_s14.txt", ios::app);
-			d = 1.4;
+			GD.open("./matlab/Benchmark_" + plannerName + "_w_s03.txt", ios::app);
+			d = 0.3;
 		}
 
 		for (int k = 0; k < 50; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, d, 0, 20); 
+			Plan.plan(c_start, c_goal, runtime, ptype, d, 6, 40); 
 
 			// Extract from perf file
 			ifstream FromFile;

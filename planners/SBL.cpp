@@ -42,7 +42,7 @@
 
 #include "SBL.h"
 
-ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si, double maxStep, int env, int knn) : base::Planner(si, "SBL"), StateValidityChecker(si, env)
+ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si, int dimension, double maxStep, int dimpca, int knn) : base::Planner(si, "SBL"), StateValidityChecker(si, dimension)
 {
 	specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 	maxDistance_ = 0.0;
@@ -54,6 +54,12 @@ ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si, double maxStep, i
 
 	Range = maxStep;
 	knn_ = knn;	
+
+	usePCA = dimpca < 1 || dimpca > dimension ? false : true;    
+    dim_ = dimpca;
+
+	if (usePCA)
+        cout << "*** Initiated PCA planning with with: knn = " << knn_ << ", and dim_pca = " << dim_ << " ***" << endl;
 }
 
 ompl::geometric::SBL::~SBL()
@@ -460,7 +466,6 @@ void ompl::geometric::SBL::getPlannerData(base::PlannerData &data) const
 void ompl::geometric::SBL::samplePCA(TreeData &tree, Motion *nmotion, base::State *rstate) {
 
 	Grid<MotionInfo>::CellArray nhbr;
-	// Grid<MotionInfo>::CellArray nhbr;
 	State q(get_n());
 	
 	Grid<MotionInfo>::Coord coord;
@@ -468,53 +473,54 @@ void ompl::geometric::SBL::samplePCA(TreeData &tree, Motion *nmotion, base::Stat
 	const Grid<MotionInfo>::Cell* cell = tree.grid.getCell(coord);
 
 	// Find up to knn nearest neighbors to nmotion in the tree
-	tree.grid.neighbors(cell, nhbr);
+	tree.grid.neighbors(coord, nhbr);
 
+	if (nhbr.size() < 1) 		
+		return;
+
+	cout << "tree size: " << tree.size << endl;		
 	tree.grid.printCoord(coord);
 	cout << tree.grid.getDimension() << " " << nhbr.size() << endl;
-	cin.ignore();
 
-	//int k = min(80, nhbr.size());
-    // tree->nearestK(nmotion, min(80, tree.size()), nhbr); //
-    // //nn_->nearestR(nmotion, nn_radius_, nhbr);
+    // Create vector<vector> db for neighbors
+    Matrix NHBR;
+    for (int i = 0; i < nhbr.size(); i++) {
+        retrieveStateVector(nhbr[i]->state, q);
+        NHBR.push_back(q);
+    }
+    retrieveStateVector(nmotion->state, q);
+    NHBR.push_back(q);
 
-    // // Create vector<vector> db for neighbors
-    // Matrix NHBR;
-    // for (int i = 0; i < nhbr.size(); i++) {
-    //     retrieveStateVector(nhbr[i]->state, q);
-    //     NHBR.push_back(q);
-    // }
-    // retrieveStateVector(nmotion->state, q);
-    // NHBR.push_back(q);
+	retrieveStateVector(rstate, q);
 
-    // // Find new sample using pca
-    // q = sample_pca(NHBR, knn_);
-    // updateStateVector(rstate, q);
+    // Find new sample using pca
+    q = sample_pca(NHBR, knn_, q);
+    updateStateVector(rstate, q);
 }  
 
-// Matrix ompl::geometric::SBL::neighbors(TreeData &tree, Coord &coord, int k) {
+Matrix ompl::geometric::SBL::Neighbors(TreeData &tree, Coord &coord, int k) {
 	
-// 	Matrix list;
-// 	list.reserve(k);
+	Matrix list;
+	list.reserve(k);
  
-//     for (int i = get_n() - 1; i >= 0; --i) {
-//         coord[i]--;
+    for (int i = tree.grid.getDimension() - 1; i >= 0; --i) {
+        coord[i]--;
  
-//         auto pos = tree.hash_.find(&coord);
-//         Cell *cell = (pos != tree.hash_.end()) ? pos->second : nullptr;
+        auto pos = tree.hash_.find(&coord);
+        Cell *cell = (pos != tree.hash_.end()) ? pos->second : nullptr;
  
-//         if (cell)
-//             list.push_back(cell);
-//         coord[i] += 2;
+        if (cell)
+            list.push_back(cell);
+        coord[i] += 2;
  
-//         pos = tree.hash_.find(&coord);
-//         cell = (pos != tree.hash_.end()) ? pos->second : nullptr;
+        pos = tree.hash_.find(&coord);
+        cell = (pos != tree.hash_.end()) ? pos->second : nullptr;
  
-//         if (cell)
-//             list.push_back(cell);
-//         coord[i]--;
-//     }
-// }
+        if (cell)
+            list.push_back(cell);
+        coord[i]--;
+    }
+}
 
 
 void ompl::geometric::SBL::save2file(vector<Motion*> mpath1, vector<Motion*> mpath2) {

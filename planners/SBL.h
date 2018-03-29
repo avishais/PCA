@@ -43,7 +43,7 @@
 #include "ompl/datastructures/PDF.h"
 #include <vector>
 
-#include "../validity_checkers/StateValidityChecker.h"
+#include "../StateValidCheckers/StateValidityChecker.h"
 
 namespace ompl
 {
@@ -89,7 +89,7 @@ class SBL : public base::Planner, public StateValidityChecker
 public:
 
 	/** \brief The constructor needs the instance of the space information */
-	SBL(const base::SpaceInformationPtr &si, double = 2, int = 1, int = 20);
+	SBL(const base::SpaceInformationPtr &si, int, double = 2, int = 6, int = 20);
 
 	virtual ~SBL();
 
@@ -145,10 +145,12 @@ public:
 		// k number of nearest neighbors to use for PCA
 	int knn_;
 
+	int dim_;
+
 	double nn_radius_;
 
 	// Flag to whether use PCA
-	bool usePCA = true;
+	bool usePCA;
 
 protected:
 
@@ -297,7 +299,7 @@ protected:
 	/** \brief Sample in PCA lower space */
 	void samplePCA(TreeData &, Motion *, base::State *);
 
-	//Matrix neighbors(TreeData &, Grid<MotionInfo>::Coord &, int);
+	Matrix Neighbors(TreeData &, Grid<MotionInfo>::Coord &, int);
 };
 
 }

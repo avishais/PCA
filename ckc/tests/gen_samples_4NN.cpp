@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <fstream>
 
-bool withObs = true;
+bool withObs = false;
 
 int main() {
 
@@ -13,12 +13,12 @@ int main() {
 	cout << "Seed in testing: " << Seed << endl;
 
 	std::ofstream File;
-	File.open("abb_samples_JL.txt", ios::app);
+	File.open("/home/avishai/Documents/workspace/ml_planner/data/abb_samples_noJL.txt", ios::app);
 
 	// KDL
 	kdl pj;
 
-	int N = 2e6;
+	int N = 5e6;
 	State qb4(12), qaf(12);
 	for (int i = 0; i < N; i++) {
 
@@ -41,8 +41,8 @@ int main() {
 
 		pj.log_q(qaf);
 
-		for (int j = 0; j < qb4.size(); j++)
-			File << qb4[j] << " ";
+		// for (int j = 0; j < qb4.size(); j++)
+		// 	File << qb4[j] << " ";
 		for (int j = 0; j < qaf.size(); j++)
 			File << qaf[j] << " ";
 		File << endl;

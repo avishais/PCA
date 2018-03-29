@@ -381,8 +381,10 @@ int StateValidityChecker::get_dim_pca() {
 	sum_evl = 0;
 	while (i < n_) {
 		sum_evl += evl[i];
-		if (sum_evl > 0.5)
+		if (sum_evl >= 1) {
+			i++;
 			break;
+		}
 		i++;
 	}
 

@@ -96,7 +96,7 @@ bool kdl::GD(State q_init_flip) {
 	State q(14);
 
 	IK_counter++;
-	clock_t begin = clock();
+	auto begin = Clock::now();
 	for (int i = 0; i < 3; i++) {
 		cartposIK.p(i) = T_pose[i][3];
 		for (int j = 0; j < 3; j++)
@@ -150,8 +150,7 @@ bool kdl::GD(State q_init_flip) {
 		proj_dist += norm(q_solution, q_init_flip);
 	}
 
-	clock_t end = clock();
-	IK_time += double(end - begin) / CLOCKS_PER_SEC;
+	IK_time += std::chrono::duration<double>(Clock::now() - begin).count();
 
 	return result;
 }

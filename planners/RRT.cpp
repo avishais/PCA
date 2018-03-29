@@ -166,10 +166,8 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
         /* find closest state in the tree */
         Motion *nmotion = nn_->nearest(rmotion);
 
-        if (usePCA && !gg && nn_->size() > 3) {
+        if (usePCA && !gg && nn_->size() > 3)  // && rng_.uniform01() < 0.5
             samplePCA(nmotion, rstate);    
-            // nmotion = nn_->nearest(rmotion);  
-        }
         // if (usePCA)
         //     sampleProxPCA(nmotion, rstate);  
 
@@ -203,8 +201,8 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
         	dstate = xstate;
 
 			// Find a closer neighbor
-			//si_->copyState(rmotion->state, dstate);
-			//nmotion = nn_->nearest(rmotion);
+			// si_->copyState(rmotion->state, dstate);
+			// nmotion = nn_->nearest(rmotion);
         }
 
         // Check motion
@@ -329,9 +327,14 @@ void ompl::geometric::RRT::samplePCA(Motion *nmotion, base::State *rstate) {
     State q(get_n());
 
     // Find up to knn nearest neighbors to nmotion in the tree
-    nn_->nearestK(nmotion, min(knn_, (int)nn_->size()), nhbr); //
-    // nn_radius_ = 1;
-    // nn_->nearestR(nmotion, nn_radius_, nhbr);
+    // nn_->nearestK(nmotion, min(knn_, (int)nn_->size()), nhbr); //
+    nn_radius_ = 1;
+    nn_->nearestR(nmotion, nn_radius_, nhbr);
+
+    // cout << "# nn: " << nhbr.size() << endl;
+
+    if (nhbr.size() < 4)
+        return;
 
     // Create vector<vector> db for neighbors
     Matrix NHBR;

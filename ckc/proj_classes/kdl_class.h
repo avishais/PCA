@@ -108,7 +108,7 @@ public:
 		return IK_time;
 	}
 
-	bool include_joint_limits = true;	
+	bool include_joint_limits = false;	
 };
 
 
